@@ -2,7 +2,7 @@
   "version": "5",
   "specifiers": {
     "jsr:@dldc/css-builder@^1.5.0": "1.5.0",
-    "jsr:@dldc/hono-ui@^1.6.1": "1.6.1",
+    "jsr:@dldc/hono-ui@^1.7.0": "1.7.0",
     "jsr:@hono/hono@^4.12.14": "4.12.18",
     "jsr:@hono/hono@^4.12.15": "4.12.18",
     "jsr:@std/assert@^1.0.19": "1.0.19",
@@ -19,8 +19,8 @@
     "@dldc/css-builder@1.5.0": {
       "integrity": "2e70b80abb55e2d594f2093046ed7ff17fb836da8f380007b9347043286a944f"
     },
-    "@dldc/hono-ui@1.6.1": {
-      "integrity": "641f465e625abc14d7df3a51e4ed683d6f8420e2e38fdaf8223bc9373ef93408",
+    "@dldc/hono-ui@1.7.0": {
+      "integrity": "12efa96f2c9d2eab84691e48ec41ae6ce0de4408183315cfda31a8d95388a5d2",
       "dependencies": [
         "jsr:@dldc/css-builder",
         "jsr:@dldc/hono-ui",
@@ -77,7 +77,7 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@dldc/hono-ui@^1.6.1",
+      "jsr:@dldc/hono-ui@^1.7.0",
       "jsr:@hono/hono@^4.12.14",
       "jsr:@hono/hono@^4.12.15",
       "jsr:@std/expect@^1.0.19",

@@ -65,6 +65,22 @@ function validateEnvFileName(name: string): void {
   }
 }
 
+export function normalizeEnvFileName(rawName: string): string {
+  const trimmed = rawName.trim();
+
+  if (!trimmed) {
+    throw new Error("Env file name is required");
+  }
+
+  if (trimmed === ".env") {
+    validateEnvFileName(trimmed);
+  }
+
+  const normalized = trimmed.startsWith(".env.") ? trimmed : `.env.${trimmed}`;
+  validateEnvFileName(normalized);
+  return normalized;
+}
+
 function envFilePath(folder: string, name: string): string {
   validateEnvFileName(name);
   return resolve(folder, name);

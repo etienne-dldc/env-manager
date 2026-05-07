@@ -1,9 +1,9 @@
-import { Input, Stack, utility } from "@dldc/hono-ui";
+import { Icon, Input, Stack, utility } from "@dldc/hono-ui";
 import { css, cx } from "hono/css";
 import type { FC } from "hono/jsx";
+import { AlertTriangle, CircleHelp } from "lucide-static";
 import type { EnvFileVariable } from "../logic/envFiles.ts";
 import { EnvVariableMetadataTags } from "./EnvVariableMetadataTags.tsx";
-import { VariableIcon } from "./VariableIcon.tsx";
 
 type EnvVariableReadonlyItemProps = {
   variable: EnvFileVariable;
@@ -27,6 +27,16 @@ export const EnvVariableReadonlyItem: FC<EnvVariableReadonlyItemProps> = (
   const nameClass = css`
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     ${utility.fontWeight("bold")};
+  `;
+
+  const warningIconClass = css`
+    ${utility.textColor("amber.500")};
+    flex: none;
+  `;
+
+  const optionalIconClass = css`
+    ${utility.textColor("sky.500")};
+    flex: none;
   `;
 
   const fieldLabelClass = css`
@@ -65,7 +75,27 @@ export const EnvVariableReadonlyItem: FC<EnvVariableReadonlyItemProps> = (
             gap={2}
             class={nameRowClass}
           >
-            <VariableIcon variable={variable} />
+            {variable.missingInEnv
+              ? (
+                variable.metadata.optional
+                  ? (
+                    <Icon
+                      icon={CircleHelp}
+                      size={4}
+                      class={optionalIconClass}
+                      title="Optional variable missing in env"
+                    />
+                  )
+                  : (
+                    <Icon
+                      icon={AlertTriangle}
+                      size={4}
+                      class={warningIconClass}
+                      title="Required variable missing in env"
+                    />
+                  )
+              )
+              : null}
             <span class={nameClass}>{variable.name}</span>
             <EnvVariableMetadataTags metadata={variable.metadata} />
           </Stack>

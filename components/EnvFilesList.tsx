@@ -1,6 +1,6 @@
-import { ButtonLink, Icon, Paper, Stack, tokens, utility } from "@dldc/hono-ui";
+import { ButtonLink, Icon, Stack, tokens, utility } from "@dldc/hono-ui";
 import { css } from "hono/css";
-import type { FC } from "hono/jsx";
+import { type FC, Fragment } from "hono/jsx";
 import { AlertTriangle, FileKey } from "lucide-static";
 import type { EnvFileListItem } from "../logic/envFiles.ts";
 
@@ -11,22 +11,6 @@ type EnvFilesListProps = {
 export const EnvFilesList: FC<EnvFilesListProps> = (
   { envFiles },
 ) => {
-  const panelClass = css`
-    ${utility.flex({ gap: 3, padding: 3, direction: "column" })};
-  `;
-
-  const titleClass = css`
-    ${utility.textSize("2xl")};
-    ${utility.fontWeight("bold")};
-    margin: 0;
-  `;
-
-  const descriptionClass = css`
-    ${utility.textSize("sm")};
-    opacity: 0.75;
-    margin: 0;
-  `;
-
   const listClass = css`
     list-style: none;
     margin: 0;
@@ -49,14 +33,7 @@ export const EnvFilesList: FC<EnvFilesListProps> = (
   `;
 
   return (
-    <Paper class={panelClass}>
-      <div>
-        <h2 class={titleClass}>Env Files</h2>
-        <p class={descriptionClass}>
-          Found {envFiles.length} file{envFiles.length === 1 ? "" : "s"}.
-        </p>
-      </div>
-
+    <Fragment>
       {envFiles.length > 0
         ? (
           <ul class={listClass}>
@@ -92,6 +69,6 @@ export const EnvFilesList: FC<EnvFilesListProps> = (
             template folders.
           </p>
         )}
-    </Paper>
+    </Fragment>
   );
 };

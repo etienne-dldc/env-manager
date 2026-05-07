@@ -4,7 +4,13 @@ import { serveStatic } from "hono/deno";
 import { routePath } from "hono/route";
 import denoJson from "./deno.json" with { type: "json" };
 import { appEnv, logEnvConfiguration } from "./logic/env.ts";
-import { getEnvFile, listEnvFilesDetailed } from "./logic/envFiles.ts";
+import {
+  createEnvFile,
+  getEnvFile,
+  listEnvFilesDetailed,
+  normalizeEnvFileName,
+} from "./logic/envFiles.ts";
+import { redirectWithMessage } from "./logic/redirectWithMessage.ts";
 import { AppsPage } from "./views/AppsPage.tsx";
 import { EnvFileDetailsPage } from "./views/EnvFileDetailsPage.tsx";
 import { ErrorPage } from "./views/ErrorPage.tsx";
@@ -92,6 +98,26 @@ app.get("/", async (c) => {
     200,
     { "cache-control": "no-store" },
   );
+});
+
+app.post("/env", async (c) => {
+  const body = await c.req.parseBody();
+  const rawName = typeof body.name === "string" ? body.name : "";
+
+  try {
+    const name = normalizeEnvFileName(rawName);
+    await createEnvFile(name);
+    return redirectWithMessage(
+      "/",
+      "ok",
+      `Created ${name}`,
+    );
+  } catch (error) {
+    const message = error instanceof Error
+      ? error.message
+      : "Failed to create env file";
+    return redirectWithMessage("/", "error", message);
+  }
 });
 
 app.get("/env/:name", async (c) => {
