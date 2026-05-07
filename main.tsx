@@ -67,6 +67,14 @@ app.use(
   }),
 );
 
+app.use("*", async (c, next) => {
+  await next();
+
+  if (!c.req.path.startsWith("/public/")) {
+    c.header("cache-control", "no-store");
+  }
+});
+
 app.onError((err, c) => {
   console.error(err);
   const message = err instanceof Error
@@ -81,14 +89,11 @@ app.onError((err, c) => {
       returnLabel="Back"
     />,
     500,
-    { "cache-control": "no-store" },
   );
 });
 
 app.notFound((c) => {
-  return c.html(<NotFoundPage />, 404, {
-    "cache-control": "no-store",
-  });
+  return c.html(<NotFoundPage />, 404);
 });
 
 app.get("/", async (c) => {
@@ -102,7 +107,6 @@ app.get("/", async (c) => {
       envFiles={envFiles}
     />,
     200,
-    { "cache-control": "no-store" },
   );
 });
 
@@ -135,7 +139,6 @@ app.get("/env/:name", async (c) => {
   return await c.html(
     <EnvFileDetailsPage envFile={envFile} />,
     200,
-    { "cache-control": "no-store" },
   );
 });
 
@@ -146,13 +149,12 @@ app.get("/partial/env/:name/variables/:variable", async (c) => {
   const variable = envFile.variables.find((item) => item.name === variableName);
 
   if (!variable) {
-    return c.text("Variable not found", 404, { "cache-control": "no-store" });
+    return c.text("Variable not found", 404);
   }
 
   return c.html(
     <EnvVariableReadonlyItem envFileName={envFileName} variable={variable} />,
     200,
-    { "cache-control": "no-store" },
   );
 });
 
@@ -163,21 +165,19 @@ app.get("/partial/env/:name/variables/:variable/edit", async (c) => {
   const variable = envFile.variables.find((item) => item.name === variableName);
 
   if (!variable) {
-    return c.text("Variable not found", 404, { "cache-control": "no-store" });
+    return c.text("Variable not found", 404);
   }
 
   if (!isSimpleTextVariable(variable)) {
     return c.html(
       <EnvVariableReadonlyItem envFileName={envFileName} variable={variable} />,
       200,
-      { "cache-control": "no-store" },
     );
   }
 
   return c.html(
     <EnvVariableEditableItem envFileName={envFileName} variable={variable} />,
     200,
-    { "cache-control": "no-store" },
   );
 });
 
@@ -195,15 +195,12 @@ app.post("/partial/env/:name/variables/:variable", async (c) => {
 
   const variable = updated.variables.find((item) => item.name === variableName);
   if (!variable) {
-    return c.text("Variable not found after update", 404, {
-      "cache-control": "no-store",
-    });
+    return c.text("Variable not found after update", 404);
   }
 
   return c.html(
     <EnvVariableReadonlyItem envFileName={envFileName} variable={variable} />,
     200,
-    { "cache-control": "no-store" },
   );
 });
 

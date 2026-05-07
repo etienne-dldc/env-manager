@@ -25,7 +25,6 @@ export function redirectWithMessage(
     status: 303,
     headers: {
       location,
-      "cache-control": "no-store",
     },
   });
 }

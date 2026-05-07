@@ -3,7 +3,6 @@ export function redirectTo(path: string): Response {
     status: 303,
     headers: {
       location: path,
-      "cache-control": "no-store",
     },
   });
 }
