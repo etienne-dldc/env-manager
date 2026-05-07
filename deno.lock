@@ -2,9 +2,9 @@
   "version": "5",
   "specifiers": {
     "jsr:@dldc/css-builder@^1.5.0": "1.5.0",
-    "jsr:@dldc/hono-ui@^1.4.0": "1.4.0",
-    "jsr:@hono/hono@^4.12.14": "4.12.15",
-    "jsr:@hono/hono@^4.12.15": "4.12.15",
+    "jsr:@dldc/hono-ui@^1.6.1": "1.6.1",
+    "jsr:@hono/hono@^4.12.14": "4.12.18",
+    "jsr:@hono/hono@^4.12.15": "4.12.18",
     "jsr:@std/assert@^1.0.19": "1.0.19",
     "jsr:@std/expect@^1.0.19": "1.0.19",
     "jsr:@std/internal@^1.0.12": "1.0.13",
@@ -19,16 +19,17 @@
     "@dldc/css-builder@1.5.0": {
       "integrity": "2e70b80abb55e2d594f2093046ed7ff17fb836da8f380007b9347043286a944f"
     },
-    "@dldc/hono-ui@1.4.0": {
-      "integrity": "d79631f42c3d165026f5952fa3e581eedcfabdf37fea2624e6a9d7fdc6fe98d9",
+    "@dldc/hono-ui@1.6.1": {
+      "integrity": "641f465e625abc14d7df3a51e4ed683d6f8420e2e38fdaf8223bc9373ef93408",
       "dependencies": [
         "jsr:@dldc/css-builder",
+        "jsr:@dldc/hono-ui",
         "jsr:@hono/hono@^4.12.14",
         "npm:type-fest"
       ]
     },
-    "@hono/hono@4.12.15": {
-      "integrity": "06a0aef73d9072e73b8db570b81a5b56a94095d697578202a87fccdf04ce352d"
+    "@hono/hono@4.12.18": {
+      "integrity": "854fd0628abd7703a1583807f1ae8f99399604b9452b6a2a777fd3e097977b8c"
     },
     "@std/assert@1.0.19": {
       "integrity": "eaada96ee120cb980bc47e040f82814d786fe8162ecc53c91d8df60b8755991e",
@@ -76,7 +77,7 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@dldc/hono-ui@^1.4.0",
+      "jsr:@dldc/hono-ui@^1.6.1",
       "jsr:@hono/hono@^4.12.14",
       "jsr:@hono/hono@^4.12.15",
       "jsr:@std/expect@^1.0.19",
