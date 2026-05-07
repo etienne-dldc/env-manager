@@ -10,7 +10,7 @@ import {
 } from "lucide-static";
 import type { EnvFileVariable } from "../logic/envFiles.ts";
 
-export function VariableIcon({ variable }: { variable: EnvFileVariable }) {
+export function EnvVariableIcon({ variable }: { variable: EnvFileVariable }) {
   const { icon, color } = ((): { icon: string; color: tokens.ColorKey } => {
     if (variable.missingInEnv) {
       if (variable.metadata.optional) {

@@ -1,7 +1,7 @@
-import { Link, Paper, Stack, utility } from "@dldc/hono-ui";
+import { Link, Paper, Stack, Typography, utility } from "@dldc/hono-ui";
 import { css } from "hono/css";
 import type { FC } from "hono/jsx";
-import { EnvVariableReadonlyItem } from "../components/EnvVariableReadonlyItem.tsx";
+import { EnvVariableItem } from "../components/EnvVariableItem.tsx";
 import { Layout } from "../components/Layout.tsx";
 import type { EnvFileVariable } from "../logic/envFiles.ts";
 
@@ -17,22 +17,6 @@ type EnvFileDetailsPageProps = {
 export const EnvFileDetailsPage: FC<EnvFileDetailsPageProps> = (
   { envFile },
 ) => {
-  const backClass = css`
-    ${utility.textColor("blue.400")};
-    text-decoration: none;
-    transition: opacity 140ms ease;
-
-    &:hover {
-      opacity: 0.8;
-    }
-  `;
-
-  const titleClass = css`
-    ${utility.textSize("2xl")};
-    ${utility.fontWeight("bold")};
-    margin: 0;
-  `;
-
   const countClass = css`
     ${utility.textSize("sm")};
     opacity: 0.75;
@@ -58,13 +42,15 @@ export const EnvFileDetailsPage: FC<EnvFileDetailsPageProps> = (
     <Layout title={envFile.name}>
       <Stack direction="column" gap={3}>
         <Link href="/">
-          <span class={backClass}>← Back to env files</span>
+          ← Back to env files
         </Link>
 
-        <Paper>
+        <Paper flexDirection="column" align="stretch">
           <Stack direction="column" gap={2} padding={3}>
             <div>
-              <h2 class={titleClass}>{envFile.name}</h2>
+              <Typography render="h2" textSize="2xl" fontWeight="bold">
+                {envFile.name}
+              </Typography>
               <p class={countClass}>
                 {envFile.variables.length} variable
                 {envFile.variables.length === 1 ? "" : "s"}
@@ -75,7 +61,7 @@ export const EnvFileDetailsPage: FC<EnvFileDetailsPageProps> = (
               ? (
                 <ul class={listClass}>
                   {envFile.variables.map((variable) => (
-                    <EnvVariableReadonlyItem
+                    <EnvVariableItem
                       key={variable.name}
                       envFileName={envFile.name}
                       variable={variable}

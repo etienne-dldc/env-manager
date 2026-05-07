@@ -1,12 +1,11 @@
+import { sValidator } from "@hono/standard-validator";
 import { SpanStatusCode, trace } from "@opentelemetry/api";
+import * as v from "@valibot/valibot";
 import { type Context, Hono } from "hono";
 import { serveStatic } from "hono/deno";
 import { routePath } from "hono/route";
-import { EnvVariableEditableItem } from "./components/EnvVariableEditableItem.tsx";
-import {
-  EnvVariableReadonlyItem,
-  isSimpleTextVariable,
-} from "./components/EnvVariableReadonlyItem.tsx";
+import { VariableValueDisplay } from "./components/EnvVariableItem/VariableValueDisplay.tsx";
+import { VariableValueEdit } from "./components/EnvVariableItem/VariableValueEdit.tsx";
 import denoJson from "./deno.json" with { type: "json" };
 import { appEnv, logEnvConfiguration } from "./logic/env.ts";
 import {
@@ -62,9 +61,7 @@ app.use("*", async (c, next) => {
 
 app.use(
   "/public/*",
-  serveStatic({
-    root: "./",
-  }),
+  serveStatic({ root: "./" }),
 );
 
 app.use("*", async (c, next) => {
@@ -101,34 +98,33 @@ app.get("/", async (c) => {
   const envFiles = await listEnvFilesDetailed();
 
   return await c.html(
-    <AppsPage
-      ok={ok}
-      error={error}
-      envFiles={envFiles}
-    />,
-    200,
+    <AppsPage ok={ok} error={error} envFiles={envFiles} />,
   );
 });
 
-app.post("/env", async (c) => {
-  const body = await c.req.parseBody();
-  const rawName = typeof body.name === "string" ? body.name : "";
+app.post(
+  "/env",
+  sValidator(
+    "form",
+    v.object({
+      name: v.pipe(v.string(), v.trim(), v.nonEmpty("Name is required")),
+    }),
+  ),
+  async (c) => {
+    const { name: rawName } = c.req.valid("form");
 
-  try {
-    const name = normalizeEnvFileName(rawName);
-    await createEnvFile(name);
-    return redirectWithMessage(
-      "/",
-      "ok",
-      `Created ${name}`,
-    );
-  } catch (error) {
-    const message = error instanceof Error
-      ? error.message
-      : "Failed to create env file";
-    return redirectWithMessage("/", "error", message);
-  }
-});
+    try {
+      const name = normalizeEnvFileName(rawName);
+      await createEnvFile(name);
+      return redirectWithMessage("/", "ok", `Created ${name}`);
+    } catch (error) {
+      const message = error instanceof Error
+        ? error.message
+        : "Failed to create env file";
+      return redirectWithMessage("/", "error", message);
+    }
+  },
+);
 
 app.get("/env/:name", async (c) => {
   const rawName = c.req.param("name");
@@ -136,73 +132,118 @@ app.get("/env/:name", async (c) => {
 
   const envFile = await getEnvFile(name);
 
-  return await c.html(
-    <EnvFileDetailsPage envFile={envFile} />,
-    200,
-  );
+  return await c.html(<EnvFileDetailsPage envFile={envFile} />);
 });
 
-app.get("/partial/env/:name/variables/:variable", async (c) => {
-  const envFileName = decodeURIComponent(c.req.param("name"));
-  const variableName = decodeURIComponent(c.req.param("variable"));
-  const envFile = await getEnvFile(envFileName);
-  const variable = envFile.variables.find((item) => item.name === variableName);
-
-  if (!variable) {
-    return c.text("Variable not found", 404);
-  }
-
-  return c.html(
-    <EnvVariableReadonlyItem envFileName={envFileName} variable={variable} />,
-    200,
-  );
-});
-
-app.get("/partial/env/:name/variables/:variable/edit", async (c) => {
-  const envFileName = decodeURIComponent(c.req.param("name"));
-  const variableName = decodeURIComponent(c.req.param("variable"));
-  const envFile = await getEnvFile(envFileName);
-  const variable = envFile.variables.find((item) => item.name === variableName);
-
-  if (!variable) {
-    return c.text("Variable not found", 404);
-  }
-
-  if (!isSimpleTextVariable(variable)) {
-    return c.html(
-      <EnvVariableReadonlyItem envFileName={envFileName} variable={variable} />,
-      200,
+app.get(
+  "/partial/variable/edit",
+  sValidator(
+    "query",
+    v.object({
+      envFileName: v.pipe(v.string(), v.trim(), v.nonEmpty()),
+      variableName: v.pipe(v.string(), v.trim(), v.nonEmpty()),
+    }),
+  ),
+  async (c) => {
+    const { envFileName, variableName } = c.req.valid("query");
+    const envFile = await getEnvFile(envFileName);
+    const variable = envFile.variables.find((item) =>
+      item.name === variableName
     );
-  }
+    if (!variable) {
+      return c.text("Variable not found", 404);
+    }
+    return c.html(
+      <VariableValueEdit envFileName={envFileName} variable={variable} />,
+    );
+  },
+);
 
-  return c.html(
-    <EnvVariableEditableItem envFileName={envFileName} variable={variable} />,
-    200,
-  );
-});
+app.get(
+  "/partial/variable/display",
+  sValidator(
+    "query",
+    v.object({
+      envFileName: v.pipe(v.string(), v.trim(), v.nonEmpty()),
+      variableName: v.pipe(v.string(), v.trim(), v.nonEmpty()),
+    }),
+  ),
+  async (c) => {
+    const { envFileName, variableName } = c.req.valid("query");
+    const envFile = await getEnvFile(envFileName);
+    const variable = envFile.variables.find((item) =>
+      item.name === variableName
+    );
+    if (!variable) {
+      return c.text("Variable not found", 404);
+    }
+    return c.html(
+      <VariableValueDisplay envFileName={envFileName} variable={variable} />,
+    );
+  },
+);
 
-app.post("/partial/env/:name/variables/:variable", async (c) => {
-  const envFileName = decodeURIComponent(c.req.param("name"));
-  const variableName = decodeURIComponent(c.req.param("variable"));
-  const body = await c.req.parseBody();
-  const value = typeof body.value === "string" ? body.value : "";
+app.post(
+  "/partial/variable/edit",
+  sValidator(
+    "form",
+    v.object({
+      envFileName: v.pipe(v.string(), v.trim(), v.nonEmpty()),
+      variableName: v.pipe(v.string(), v.trim(), v.nonEmpty()),
+      value: v.string(),
+    }),
+  ),
+  async (c) => {
+    const { envFileName, variableName, value } = c.req.valid("form");
 
-  const updated = await updateEnvFile(envFileName, [{
-    type: "updateValue",
-    name: variableName,
-    value,
-  }]);
+    const updated = await updateEnvFile(envFileName, [{
+      type: "updateValue",
+      name: variableName,
+      value,
+    }]);
 
-  const variable = updated.variables.find((item) => item.name === variableName);
-  if (!variable) {
-    return c.text("Variable not found after update", 404);
-  }
+    const variable = updated.variables.find((item) =>
+      item.name === variableName
+    );
+    if (!variable) {
+      return c.text("Variable not found after update", 404);
+    }
 
-  return c.html(
-    <EnvVariableReadonlyItem envFileName={envFileName} variable={variable} />,
-    200,
-  );
-});
+    return c.html(
+      <VariableValueDisplay envFileName={envFileName} variable={variable} />,
+    );
+  },
+);
+
+app.post(
+  "/partial/variable/generate",
+  sValidator(
+    "query",
+    v.object({
+      envFileName: v.pipe(v.string(), v.trim(), v.nonEmpty()),
+      variableName: v.pipe(v.string(), v.trim(), v.nonEmpty()),
+    }),
+  ),
+  async (c) => {
+    const { envFileName, variableName } = c.req.valid("query");
+
+    const updated = await updateEnvFile(envFileName, [{
+      type: "generateValue",
+      name: variableName,
+    }]);
+
+    const variable = updated.variables.find((item) =>
+      item.name === variableName
+    );
+    if (!variable) {
+      return c.text("Variable not found after generation", 404);
+    }
+
+    return c.html(
+      <VariableValueDisplay envFileName={envFileName} variable={variable} />,
+    );
+  },
+);
 
 console.log(`Env Manager listening on :${appEnv.port}`);
 Deno.serve({ port: appEnv.port }, app.fetch);
