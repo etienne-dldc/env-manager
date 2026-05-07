@@ -2,6 +2,11 @@ import { SpanStatusCode, trace } from "@opentelemetry/api";
 import { type Context, Hono } from "hono";
 import { serveStatic } from "hono/deno";
 import { routePath } from "hono/route";
+import { EnvVariableEditableItem } from "./components/EnvVariableEditableItem.tsx";
+import {
+  EnvVariableReadonlyItem,
+  isSimpleTextVariable,
+} from "./components/EnvVariableReadonlyItem.tsx";
 import denoJson from "./deno.json" with { type: "json" };
 import { appEnv, logEnvConfiguration } from "./logic/env.ts";
 import {
@@ -9,6 +14,7 @@ import {
   getEnvFile,
   listEnvFilesDetailed,
   normalizeEnvFileName,
+  updateEnvFile,
 } from "./logic/envFiles.ts";
 import { redirectWithMessage } from "./logic/redirectWithMessage.ts";
 import { AppsPage } from "./views/AppsPage.tsx";
@@ -128,6 +134,74 @@ app.get("/env/:name", async (c) => {
 
   return await c.html(
     <EnvFileDetailsPage envFile={envFile} />,
+    200,
+    { "cache-control": "no-store" },
+  );
+});
+
+app.get("/partial/env/:name/variables/:variable", async (c) => {
+  const envFileName = decodeURIComponent(c.req.param("name"));
+  const variableName = decodeURIComponent(c.req.param("variable"));
+  const envFile = await getEnvFile(envFileName);
+  const variable = envFile.variables.find((item) => item.name === variableName);
+
+  if (!variable) {
+    return c.text("Variable not found", 404, { "cache-control": "no-store" });
+  }
+
+  return c.html(
+    <EnvVariableReadonlyItem envFileName={envFileName} variable={variable} />,
+    200,
+    { "cache-control": "no-store" },
+  );
+});
+
+app.get("/partial/env/:name/variables/:variable/edit", async (c) => {
+  const envFileName = decodeURIComponent(c.req.param("name"));
+  const variableName = decodeURIComponent(c.req.param("variable"));
+  const envFile = await getEnvFile(envFileName);
+  const variable = envFile.variables.find((item) => item.name === variableName);
+
+  if (!variable) {
+    return c.text("Variable not found", 404, { "cache-control": "no-store" });
+  }
+
+  if (!isSimpleTextVariable(variable)) {
+    return c.html(
+      <EnvVariableReadonlyItem envFileName={envFileName} variable={variable} />,
+      200,
+      { "cache-control": "no-store" },
+    );
+  }
+
+  return c.html(
+    <EnvVariableEditableItem envFileName={envFileName} variable={variable} />,
+    200,
+    { "cache-control": "no-store" },
+  );
+});
+
+app.post("/partial/env/:name/variables/:variable", async (c) => {
+  const envFileName = decodeURIComponent(c.req.param("name"));
+  const variableName = decodeURIComponent(c.req.param("variable"));
+  const body = await c.req.parseBody();
+  const value = typeof body.value === "string" ? body.value : "";
+
+  const updated = await updateEnvFile(envFileName, [{
+    type: "updateValue",
+    name: variableName,
+    value,
+  }]);
+
+  const variable = updated.variables.find((item) => item.name === variableName);
+  if (!variable) {
+    return c.text("Variable not found after update", 404, {
+      "cache-control": "no-store",
+    });
+  }
+
+  return c.html(
+    <EnvVariableReadonlyItem envFileName={envFileName} variable={variable} />,
     200,
     { "cache-control": "no-store" },
   );

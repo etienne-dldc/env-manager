@@ -42,7 +42,6 @@ export const Layout: FC<LayoutProps> = (
             crossorigin="anonymous"
           >
           </script>
-          <script src="/public/helper.js" defer />
         </Fragment>
       }
     >

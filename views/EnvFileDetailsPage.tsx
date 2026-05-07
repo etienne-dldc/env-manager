@@ -77,6 +77,7 @@ export const EnvFileDetailsPage: FC<EnvFileDetailsPageProps> = (
                   {envFile.variables.map((variable) => (
                     <EnvVariableReadonlyItem
                       key={variable.name}
+                      envFileName={envFile.name}
                       variable={variable}
                     />
                   ))}

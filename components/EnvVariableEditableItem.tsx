@@ -8,25 +8,17 @@ import {
 } from "@dldc/hono-ui";
 import { css, cx } from "hono/css";
 import type { FC } from "hono/jsx";
-import { AlertTriangle, CircleHelp, Pencil } from "lucide-static";
+import { AlertTriangle, Check, CircleHelp, X } from "lucide-static";
 import type { EnvFileVariable } from "../logic/envFiles.ts";
 import { EnvVariableMetadataTags } from "./EnvVariableMetadataTags.tsx";
+import { getVariableRowId } from "./EnvVariableReadonlyItem.tsx";
 
-type EnvVariableReadonlyItemProps = {
+type EnvVariableEditableItemProps = {
   envFileName: string;
   variable: EnvFileVariable;
 };
 
-export function getVariableRowId(name: string): string {
-  return `env-variable-${name}`;
-}
-
-export function isSimpleTextVariable(variable: EnvFileVariable): boolean {
-  return !variable.metadata.secret &&
-    (!variable.metadata.type || variable.metadata.type === "string");
-}
-
-export const EnvVariableReadonlyItem: FC<EnvVariableReadonlyItemProps> = (
+export const EnvVariableEditableItem: FC<EnvVariableEditableItemProps> = (
   { envFileName, variable },
 ) => {
   const itemClass = css`
@@ -82,11 +74,10 @@ export const EnvVariableReadonlyItem: FC<EnvVariableReadonlyItemProps> = (
     margin: 0;
   `;
 
-  const canEditInline = isSimpleTextVariable(variable);
-  const editUrl = `/partial/env/${encodeURIComponent(envFileName)}/variables/${
-    encodeURIComponent(variable.name)
-  }/edit`;
   const rowId = getVariableRowId(variable.name);
+  const updateUrl = `/partial/env/${
+    encodeURIComponent(envFileName)
+  }/variables/${encodeURIComponent(variable.name)}`;
 
   return (
     <li id={rowId} class={itemClass}>
@@ -128,57 +119,53 @@ export const EnvVariableReadonlyItem: FC<EnvVariableReadonlyItemProps> = (
             : null}
         </Stack>
 
-        <Stack direction="column" gap={0.5} class={sectionClass}>
-          <span class={cx(fieldLabelClass, srOnlyClass)}>Value</span>
-          {canEditInline
-            ? (
-              <InlineGroup>
-                <Input
-                  type="text"
-                  value={variable.value}
-                  placeholder={variable.missingInEnv
-                    ? variable.exampleValue
-                    : undefined}
-                  readOnly
-                  spellCheck={false}
-                  size={10}
-                  class={css`
-                    ${utility.fontFamily("mono")};
-                    flex: 1;
-                  `}
-                  hx-get={editUrl}
-                  hx-target={`#${rowId}`}
-                  hx-swap="outerHTML"
-                />
-                <Button
-                  type="button"
-                  size={10}
-                  title={`Edit ${variable.name}`}
-                  aria-label={`Edit ${variable.name}`}
-                  hx-get={editUrl}
-                  hx-target={`#${rowId}`}
-                  hx-swap="outerHTML"
-                >
-                  <Icon icon={Pencil} size={4} />
-                </Button>
-              </InlineGroup>
-            )
-            : (
+        <form
+          method="post"
+          action={updateUrl}
+          hx-post={updateUrl}
+          hx-target={`#${rowId}`}
+          hx-swap="outerHTML"
+        >
+          <Stack direction="column" gap={0.5} class={sectionClass}>
+            <span class={cx(fieldLabelClass, srOnlyClass)}>Value</span>
+            <InlineGroup>
               <Input
                 type="text"
+                name="value"
                 value={variable.value}
                 placeholder={variable.missingInEnv
                   ? variable.exampleValue
                   : undefined}
-                readOnly
                 spellCheck={false}
                 size={10}
                 class={css`
                   ${utility.fontFamily("mono")};
+                  flex: 1;
                 `}
+                autoFocus
               />
-            )}
-        </Stack>
+              <Button
+                type="submit"
+                size={10}
+                title={`Save ${variable.name}`}
+                aria-label={`Save ${variable.name}`}
+              >
+                <Icon icon={Check} size={4} />
+              </Button>
+              <Button
+                type="button"
+                size={10}
+                title={`Cancel ${variable.name}`}
+                aria-label={`Cancel ${variable.name}`}
+                hx-get={updateUrl}
+                hx-target={`#${rowId}`}
+                hx-swap="outerHTML"
+              >
+                <Icon icon={X} size={4} />
+              </Button>
+            </InlineGroup>
+          </Stack>
+        </form>
       </Stack>
     </li>
   );
