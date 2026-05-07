@@ -1,7 +1,7 @@
-import { ButtonLink, Icon, Paper, Stack, utility } from "@dldc/hono-ui";
+import { ButtonLink, Icon, Paper, Stack, tokens, utility } from "@dldc/hono-ui";
 import { css } from "hono/css";
 import type { FC } from "hono/jsx";
-import { AlertTriangle } from "lucide-static";
+import { AlertTriangle, FileKey } from "lucide-static";
 import type { EnvFileListItem } from "../logic/envFiles.ts";
 
 type EnvFilesListProps = {
@@ -41,11 +41,6 @@ export const EnvFilesList: FC<EnvFilesListProps> = (
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   `;
 
-  const warningIconClass = css`
-    ${utility.textColor("amber.500")};
-    flex: none;
-  `;
-
   const emptyClass = css`
     ${utility.textSize("sm")};
     font-style: italic;
@@ -80,11 +75,10 @@ export const EnvFilesList: FC<EnvFilesListProps> = (
                         <Icon
                           icon={AlertTriangle}
                           size={4}
-                          class={warningIconClass}
-                          title="File missing in env folder"
+                          color={tokens.c("amber.500")}
                         />
                       )
-                      : null}
+                      : <Icon icon={FileKey} size={4} />}
                     <span class={fileNameClass}>{file.name}</span>
                   </Stack>
                 </ButtonLink>

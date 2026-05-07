@@ -1,5 +1,4 @@
-import { Tag } from "@dldc/hono-ui";
-import { css } from "hono/css";
+import { Stack, Tag } from "@dldc/hono-ui";
 import type { FC } from "hono/jsx";
 import type { EnvMetadata } from "../logic/envFormat.ts";
 
@@ -10,14 +9,8 @@ type EnvVariableMetadataTagsProps = {
 export const EnvVariableMetadataTags: FC<EnvVariableMetadataTagsProps> = (
   { metadata },
 ) => {
-  const tagsRowClass = css`
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.35rem;
-  `;
-
   return (
-    <div class={tagsRowClass}>
+    <Stack direction="row" align="center" gap={2}>
       {metadata.type ? <Tag>{`type: ${metadata.type}`}</Tag> : null}
       {metadata.secret ? <Tag color="red.500">secret</Tag> : null}
       {metadata.optional ? <Tag color="gray.500">optional</Tag> : null}
@@ -25,6 +18,6 @@ export const EnvVariableMetadataTags: FC<EnvVariableMetadataTagsProps> = (
         ? <Tag color="blue.500">{`length: ${metadata.length}`}</Tag>
         : null}
       {metadata.generate ? <Tag color="green.500">generate</Tag> : null}
-    </div>
+    </Stack>
   );
 };
