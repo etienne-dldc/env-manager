@@ -8,15 +8,17 @@ import {
   ToggleLeft,
   Type,
 } from "lucide-static";
-import type { EnvFileVariable } from "../logic/envFiles.ts";
+import type { BackendFileVariable } from "../logic/backend/types.ts";
 
-export function EnvVariableIcon({ variable }: { variable: EnvFileVariable }) {
+export function EnvVariableIcon(
+  { variable }: { variable: BackendFileVariable },
+) {
   const { icon, color } = ((): { icon: string; color: tokens.ColorKey } => {
-    if (variable.missingInEnv) {
-      if (variable.metadata.optional) {
-        return { icon: CircleQuestionMark, color: "sky.500" };
+    if (variable.source === "template") {
+      if (variable.metadata.required) {
+        return { icon: AlertTriangle, color: "amber.500" };
       }
-      return { icon: AlertTriangle, color: "amber.500" };
+      return { icon: CircleQuestionMark, color: "sky.500" };
     }
     if (variable.metadata.type === "boolean") {
       return { icon: ToggleLeft, color: "neutral.400" };

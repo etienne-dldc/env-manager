@@ -90,16 +90,16 @@ Deno.test("parseEnvFile", async (t) => {
     expect(result[1].metadata.description).toEqual("Second variable");
   });
 
-  await t.step("optional and generate flags", () => {
+  await t.step("required and generate flags", () => {
     const content = file(
-      "# @optional",
+      "# @required",
       "# @generate",
       "API_KEY=generated_key",
     );
     const result = parseEnvFile(content);
 
     expect(result.length).toEqual(1);
-    expect(result[0].metadata.optional).toEqual(true);
+    expect(result[0].metadata.required).toEqual(true);
     expect(result[0].metadata.generate).toEqual(true);
   });
 
@@ -192,7 +192,7 @@ Deno.test("serializeEnvFile", async (t) => {
     ];
     const result = serializeEnvFile(variables);
 
-    expect(result).toEqual("PORT=3000");
+    expect(result).toEqual("PORT=3000\n");
   });
 
   await t.step("variable with metadata", () => {
@@ -215,7 +215,7 @@ Deno.test("serializeEnvFile", async (t) => {
       "# @secret",
       "# @length 32",
       "DB_PASSWORD=supersecret",
-    );
+    ) + "\n";
 
     expect(result).toEqual(expected);
   });
@@ -240,7 +240,7 @@ Deno.test("serializeEnvFile", async (t) => {
       "",
       "# @description Second",
       "VAR2=value2",
-    );
+    ) + "\n";
 
     expect(result).toEqual(expected);
   });
@@ -254,7 +254,7 @@ Deno.test("serializeEnvFile", async (t) => {
           description: "A secure key",
           type: "json",
           secret: true,
-          optional: true,
+          required: true,
           length: 64,
           generate: true,
         },
@@ -265,11 +265,11 @@ Deno.test("serializeEnvFile", async (t) => {
       "# @description A secure key",
       "# @type json",
       "# @secret",
-      "# @optional",
+      "# @required",
       "# @length 64",
       "# @generate",
       "SECURE_KEY=key_value",
-    );
+    ) + "\n";
 
     expect(result).toEqual(expected);
   });

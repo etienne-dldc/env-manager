@@ -31,7 +31,7 @@ DB_PASSWORD=supersecret
 - `@description`: A description of the variable, displayed in the UI.
 - `@type`: The type of the variable, see below for supported types.
 - `@secret`: A flag to indicate that the variable is a secret. Secrets value are never displayed in the UI, they can only be replaced. Once a variable is marked as secret, it cannot be unmarked. This is to prevent accidental exposure of secrets.
-- `@optional`: A flag to indicate that the variable is optional. This is particularly useful when using a template, as it allows to differentiate between variables that are required and those that are optional.
+- `@required`: A flag to indicate that the variable is required. This is particularly useful when using a template, as it allows to differentiate between variables that are required and those that are optional.
 - `@length`: A number to indicate the expected length of the variable value. This is useful for variables that have a fixed length, such as API keys or secrets.
 - `@generate`: A flag to indicate that the variable value can be generated.
 

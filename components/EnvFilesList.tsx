@@ -2,10 +2,10 @@ import { ButtonLink, Icon, Stack, tokens, utility } from "@dldc/hono-ui";
 import { css } from "hono/css";
 import { type FC, Fragment } from "hono/jsx";
 import { AlertTriangle, FileKey } from "lucide-static";
-import type { EnvFileListItem } from "../logic/envFiles.ts";
+import type { BackendFile } from "../logic/backend/types.ts";
 
 type EnvFilesListProps = {
-  envFiles: EnvFileListItem[];
+  envFiles: BackendFile[];
 };
 
 export const EnvFilesList: FC<EnvFilesListProps> = (
@@ -47,7 +47,7 @@ export const EnvFilesList: FC<EnvFilesListProps> = (
                   href={`/env/${encodeURIComponent(file.name)}`}
                 >
                   <Stack direction="row" align="center" gap={2}>
-                    {file.missingInEnv
+                    {file.source === "template"
                       ? (
                         <Icon
                           icon={AlertTriangle}

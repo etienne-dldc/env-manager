@@ -6,7 +6,7 @@ export type EnvMetadata = {
   description?: string;
   type?: VariableType;
   secret?: boolean;
-  optional?: boolean;
+  required?: boolean;
   length?: number;
   generate?: boolean;
 };
@@ -33,8 +33,8 @@ function parseMetadata(commentLines: string[]): EnvMetadata {
       }
     } else if (trimmed === "# @secret") {
       metadata.secret = true;
-    } else if (trimmed === "# @optional") {
-      metadata.optional = true;
+    } else if (trimmed === "# @required") {
+      metadata.required = true;
     } else if (trimmed.startsWith("# @length ")) {
       const length = parseInt(trimmed.substring("# @length ".length).trim());
       if (!isNaN(length)) {
@@ -111,8 +111,8 @@ export function serializeEnvFile(variables: EnvVariable[]): string {
       lines.push("# @secret");
     }
 
-    if (metadata.optional) {
-      lines.push("# @optional");
+    if (metadata.required) {
+      lines.push("# @required");
     }
 
     if (metadata.length !== undefined) {
@@ -130,6 +130,10 @@ export function serializeEnvFile(variables: EnvVariable[]): string {
     if (variable !== variables[variables.length - 1]) {
       lines.push("");
     }
+  }
+
+  if (lines.length > 0) {
+    lines.push("");
   }
 
   return lines.join("\n");

@@ -1,0 +1,215 @@
+import { resolve } from "@std/path";
+import { addVariableInternal } from "./addVariableInternal.ts";
+import { listFilesInternal } from "./listFilesInternal.ts";
+import { listVariablesInternal } from "./listVariablesInternal.ts";
+import { regenerateVariableInternal } from "./regenerateVariableInternal.ts";
+import { saveFileInternal } from "./saveFileInternal.ts";
+import type { BackendFile, BackendFileVariable } from "./types.ts";
+import { updateVariableInternal } from "./updateVariableInternal.ts";
+
+const ENV_FILE_NAME_RE = /^\.env\.[^/]+$/;
+
+export interface Backend {
+  listFiles(): Promise<BackendFile[]>;
+  getFile(name: string): Promise<BackendFile>;
+  listVariables(name: string): Promise<BackendFileVariable[]>;
+  getVariable(
+    fileName: string,
+    variableName: string,
+  ): Promise<BackendFileVariable | null>;
+  updateVariable(
+    fileName: string,
+    variableName: string,
+    value: string,
+  ): Promise<void>;
+  addVariable(
+    fileName: string,
+    variableName: string,
+    value?: string,
+  ): Promise<void>;
+  regenerateVariable(
+    fileName: string,
+    variableName: string,
+  ): Promise<void>;
+  createFile(name: string): Promise<void>;
+  deleteFile(name: string): Promise<void>;
+}
+
+export interface BackendOptions {
+  envFilesFolder: string;
+  envTemplatesFolder: string;
+}
+
+export function createBackend(
+  { envFilesFolder, envTemplatesFolder }: BackendOptions,
+): Backend {
+  return {
+    listFiles,
+    getFile,
+    listVariables,
+    getVariable,
+    updateVariable,
+    addVariable,
+    regenerateVariable,
+    createFile,
+    deleteFile,
+  };
+
+  async function listFiles() {
+    const { files } = await resolveFiles();
+    return files;
+  }
+
+  async function getFile(name: string): Promise<BackendFile> {
+    const { file } = await resolveFile(name);
+    return file;
+  }
+
+  async function listVariables(fileName: string) {
+    const { variables } = await resolveVariables(fileName);
+    return variables;
+  }
+
+  async function getVariable(fileName: string, variableName: string) {
+    const { variables } = await resolveVariables(fileName);
+    return variables.find((v) => v.name === variableName) ?? null;
+  }
+
+  async function updateVariable(
+    fileName: string,
+    variableName: string,
+    value: string,
+  ) {
+    const { variable, saveVariable } = await resolveVariable(
+      fileName,
+      variableName,
+    );
+    await saveVariable(updateVariableInternal(variable, value));
+  }
+
+  async function addVariable(
+    fileName: string,
+    variableName: string,
+    value?: string,
+  ) {
+    const { file, variables, saveFile } = await resolveVariables(fileName);
+    const variable = addVariableInternal(
+      file,
+      variableName,
+      value,
+    );
+    await saveFile([...variables, variable]);
+  }
+
+  async function regenerateVariable(
+    fileName: string,
+    variableName: string,
+  ) {
+    const { variable, saveVariable } = await resolveVariable(
+      fileName,
+      variableName,
+    );
+    await saveVariable(regenerateVariableInternal(variable));
+  }
+
+  async function createFile(name: string) {
+    const fileName = normalizeBackendFileName(name);
+    const path = resolve(envFilesFolder, fileName);
+    if (await pathExists(path)) {
+      throw new Error(`File already exists: ${fileName}`);
+    }
+
+    await Deno.mkdir(envFilesFolder, { recursive: true });
+    await Deno.writeTextFile(path, "", { createNew: true });
+  }
+
+  async function deleteFile(name: string) {
+    const fileName = normalizeBackendFileName(name);
+    const path = resolve(envFilesFolder, fileName);
+
+    try {
+      await Deno.remove(path);
+    } catch (error) {
+      if (error instanceof Deno.errors.NotFound) {
+        return;
+      }
+      throw error;
+    }
+  }
+
+  async function resolveFiles() {
+    const files = await listFilesInternal(envFilesFolder, envTemplatesFolder);
+    return { files };
+  }
+
+  async function resolveFile(fileName: string) {
+    const { files } = await resolveFiles();
+    const file = files.find((f) => f.name === fileName);
+    if (!file) {
+      throw new Error(`File not found: ${fileName}`);
+    }
+    return { files, file };
+  }
+
+  async function resolveVariables(fileName: string) {
+    const { file, files } = await resolveFile(fileName);
+    const { merged, template } = await listVariablesInternal(file);
+    const saveFile = (updatedVariables: BackendFileVariable[]) => {
+      return saveFileInternal(
+        envFilesFolder,
+        file,
+        updatedVariables,
+        template,
+      );
+    };
+
+    return { file, variables: merged, template, files, saveFile };
+  }
+
+  async function resolveVariable(fileName: string, variableName: string) {
+    const { variables, file, files, saveFile } = await resolveVariables(
+      fileName,
+    );
+    const variable = variables.find((v) => v.name === variableName);
+    if (!variable) {
+      throw new Error(`Variable ${variableName} not found in file ${fileName}`);
+    }
+    const saveVariable = (updatedVariable: BackendFileVariable) => {
+      const updatedVariables = variables.map((v) =>
+        v.name === variableName ? updatedVariable : v
+      );
+      return saveFile(updatedVariables);
+    };
+
+    return { variable, variables, file, files, saveVariable };
+  }
+}
+
+export function normalizeBackendFileName(rawName: string): string {
+  const trimmed = rawName.trim();
+
+  if (!trimmed) {
+    throw new Error("Env file name is required");
+  }
+
+  const normalized = trimmed.startsWith(".env.") ? trimmed : `.env.${trimmed}`;
+  if (!ENV_FILE_NAME_RE.test(normalized)) {
+    throw new Error(
+      `Invalid env file name ${JSON.stringify(rawName)}. Expected .env.<name>`,
+    );
+  }
+
+  return normalized;
+}
+
+async function pathExists(path: string): Promise<boolean> {
+  try {
+    const stat = await Deno.stat(path);
+    return stat.isFile;
+  } catch (error) {
+    if (error instanceof Deno.errors.NotFound) {
+      return false;
+    }
+    throw error;
+  }
+}

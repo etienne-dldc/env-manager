@@ -1,14 +1,14 @@
 import { Stack, utility } from "@dldc/hono-ui";
 import { css } from "hono/css";
 import type { FC } from "hono/jsx";
-import type { EnvFileVariable } from "../logic/envFiles.ts";
+import type { BackendFileVariable } from "../logic/backend/types.ts";
 import { EnvVariableIcon } from "./EnvVariableIcon.tsx";
 import { VariableValueDisplay } from "./EnvVariableItem/VariableValueDisplay.tsx";
 import { EnvVariableMetadataTags } from "./EnvVariableMetadataTags.tsx";
 
 type EnvVariableItemProps = {
   envFileName: string;
-  variable: EnvFileVariable;
+  variable: BackendFileVariable;
 };
 
 export const EnvVariableItem: FC<EnvVariableItemProps> = (

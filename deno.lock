@@ -2,7 +2,7 @@
   "version": "5",
   "specifiers": {
     "jsr:@dldc/css-builder@^1.5.0": "1.5.0",
-    "jsr:@dldc/hono-ui@^1.9.2": "1.9.2",
+    "jsr:@dldc/hono-ui@^1.10.0": "1.10.0",
     "jsr:@hono/hono@^4.12.14": "4.12.18",
     "jsr:@hono/hono@^4.12.15": "4.12.18",
     "jsr:@hono/hono@^4.8.3": "4.12.18",
@@ -22,8 +22,8 @@
     "@dldc/css-builder@1.5.0": {
       "integrity": "2e70b80abb55e2d594f2093046ed7ff17fb836da8f380007b9347043286a944f"
     },
-    "@dldc/hono-ui@1.9.2": {
-      "integrity": "c47bc4ca455e9166d2a0b619ddc55a494c51ea007f3a67834083d1cb05f6f39f",
+    "@dldc/hono-ui@1.10.0": {
+      "integrity": "e7a04e35ea7c41d2f5ea10731bfb309ade3781a6242d55e4c53887d368b26ea9",
       "dependencies": [
         "jsr:@dldc/css-builder",
         "jsr:@dldc/hono-ui",
@@ -90,7 +90,7 @@
   },
   "workspace": {
     "dependencies": [
-      "jsr:@dldc/hono-ui@^1.9.2",
+      "jsr:@dldc/hono-ui@^1.10.0",
       "jsr:@hono/hono@^4.12.14",
       "jsr:@hono/hono@^4.12.15",
       "jsr:@hono/standard-validator@~0.2.2",

@@ -9,13 +9,15 @@ import {
 import { css } from "hono/css";
 import type { FC } from "hono/jsx";
 import { Pencil, RefreshCcw } from "lucide-static";
+import type { BackendFileVariable } from "../../logic/backend/types.ts";
 import { buildUrl } from "../../logic/buildUrl.ts";
-import type { EnvFileVariable } from "../../logic/envFiles.ts";
 import { randomId } from "../../logic/randomId.ts";
+
+const SECRET_PLACEHOLDER = "******";
 
 type VariableValueDisplayProps = {
   envFileName: string;
-  variable: EnvFileVariable;
+  variable: BackendFileVariable;
 };
 
 export const VariableValueDisplay: FC<VariableValueDisplayProps> = (
@@ -24,14 +26,18 @@ export const VariableValueDisplay: FC<VariableValueDisplayProps> = (
   const id = randomId();
   const canRegenerate = variable.metadata.generate === true &&
     typeof variable.metadata.length === "number";
+  const displayValue =
+    variable.metadata.secret && variable.source !== "template"
+      ? SECRET_PLACEHOLDER
+      : variable.value;
 
   return (
     <Stack id={id} direction="column" gap={2}>
       <InlineGroup>
         <Input
           type="text"
-          value={variable.value}
-          placeholder={variable.missingInEnv
+          value={displayValue}
+          placeholder={variable.source === "template"
             ? variable.exampleValue
             : undefined}
           readOnly

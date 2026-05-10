@@ -3,12 +3,12 @@ import { css } from "hono/css";
 import type { FC } from "hono/jsx";
 import { EnvFilesList } from "../components/EnvFilesList.tsx";
 import { Layout } from "../components/Layout.tsx";
-import type { EnvFileListItem } from "../logic/envFiles.ts";
+import type { BackendFile } from "../logic/backend/types.ts";
 
 type AppsPageProps = {
   ok?: string | null;
   error?: string | null;
-  envFiles: EnvFileListItem[];
+  envFiles: BackendFile[];
 };
 
 export const AppsPage: FC<AppsPageProps> = (

@@ -11,7 +11,7 @@
     "test:run": "deno test --allow-all"
   },
   "imports": {
-    "@dldc/hono-ui": "jsr:@dldc/hono-ui@^1.9.2",
+    "@dldc/hono-ui": "jsr:@dldc/hono-ui@^1.10.0",
     "@hono/hono": "jsr:@hono/hono@^4.12.15",
     "@hono/standard-validator": "jsr:@hono/standard-validator@^0.2.2",
     "@opentelemetry/api": "npm:@opentelemetry/api@^1.9.1",

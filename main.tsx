@@ -7,14 +7,11 @@ import { routePath } from "hono/route";
 import { VariableValueDisplay } from "./components/EnvVariableItem/VariableValueDisplay.tsx";
 import { VariableValueEdit } from "./components/EnvVariableItem/VariableValueEdit.tsx";
 import denoJson from "./deno.json" with { type: "json" };
-import { appEnv, logEnvConfiguration } from "./logic/env.ts";
 import {
-  createEnvFile,
-  getEnvFile,
-  listEnvFilesDetailed,
-  normalizeEnvFileName,
-  updateEnvFile,
-} from "./logic/envFiles.ts";
+  createBackend,
+  normalizeBackendFileName,
+} from "./logic/backend/backend.ts";
+import { appEnv, logEnvConfiguration } from "./logic/env.ts";
 import { redirectWithMessage } from "./logic/redirectWithMessage.ts";
 import { AppsPage } from "./views/AppsPage.tsx";
 import { EnvFileDetailsPage } from "./views/EnvFileDetailsPage.tsx";
@@ -26,6 +23,11 @@ logEnvConfiguration(appEnv);
 console.log(
   `OpenTelemetry ${appEnv.otel.denoEnabled ? "enabled" : "disabled"}`,
 );
+
+const backend = createBackend({
+  envFilesFolder: appEnv.envFolder,
+  envTemplatesFolder: appEnv.envTemplateFolder,
+});
 
 function getFlash(c: Context) {
   return {
@@ -95,7 +97,7 @@ app.notFound((c) => {
 
 app.get("/", async (c) => {
   const { ok, error } = getFlash(c);
-  const envFiles = await listEnvFilesDetailed();
+  const envFiles = await backend.listFiles();
 
   return await c.html(
     <AppsPage ok={ok} error={error} envFiles={envFiles} />,
@@ -114,8 +116,8 @@ app.post(
     const { name: rawName } = c.req.valid("form");
 
     try {
-      const name = normalizeEnvFileName(rawName);
-      await createEnvFile(name);
+      const name = normalizeBackendFileName(rawName);
+      await backend.createFile(name);
       return redirectWithMessage("/", "ok", `Created ${name}`);
     } catch (error) {
       const message = error instanceof Error
@@ -129,9 +131,9 @@ app.post(
 app.get("/env/:name", async (c) => {
   const rawName = c.req.param("name");
   const name = decodeURIComponent(rawName);
-
-  const envFile = await getEnvFile(name);
-
+  const file = await backend.getFile(name);
+  const variables = await backend.listVariables(name);
+  const envFile = { name: file.name, variables };
   return await c.html(<EnvFileDetailsPage envFile={envFile} />);
 });
 
@@ -146,10 +148,7 @@ app.get(
   ),
   async (c) => {
     const { envFileName, variableName } = c.req.valid("query");
-    const envFile = await getEnvFile(envFileName);
-    const variable = envFile.variables.find((item) =>
-      item.name === variableName
-    );
+    const variable = await backend.getVariable(envFileName, variableName);
     if (!variable) {
       return c.text("Variable not found", 404);
     }
@@ -170,10 +169,7 @@ app.get(
   ),
   async (c) => {
     const { envFileName, variableName } = c.req.valid("query");
-    const envFile = await getEnvFile(envFileName);
-    const variable = envFile.variables.find((item) =>
-      item.name === variableName
-    );
+    const variable = await backend.getVariable(envFileName, variableName);
     if (!variable) {
       return c.text("Variable not found", 404);
     }
@@ -196,15 +192,8 @@ app.post(
   async (c) => {
     const { envFileName, variableName, value } = c.req.valid("form");
 
-    const updated = await updateEnvFile(envFileName, [{
-      type: "updateValue",
-      name: variableName,
-      value,
-    }]);
-
-    const variable = updated.variables.find((item) =>
-      item.name === variableName
-    );
+    await backend.updateVariable(envFileName, variableName, value);
+    const variable = await backend.getVariable(envFileName, variableName);
     if (!variable) {
       return c.text("Variable not found after update", 404);
     }
@@ -227,14 +216,8 @@ app.post(
   async (c) => {
     const { envFileName, variableName } = c.req.valid("query");
 
-    const updated = await updateEnvFile(envFileName, [{
-      type: "generateValue",
-      name: variableName,
-    }]);
-
-    const variable = updated.variables.find((item) =>
-      item.name === variableName
-    );
+    await backend.regenerateVariable(envFileName, variableName);
+    const variable = await backend.getVariable(envFileName, variableName);
     if (!variable) {
       return c.text("Variable not found after generation", 404);
     }

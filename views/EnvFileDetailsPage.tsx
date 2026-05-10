@@ -3,11 +3,11 @@ import { css } from "hono/css";
 import type { FC } from "hono/jsx";
 import { EnvVariableItem } from "../components/EnvVariableItem.tsx";
 import { Layout } from "../components/Layout.tsx";
-import type { EnvFileVariable } from "../logic/envFiles.ts";
+import type { BackendFileVariable } from "../logic/backend/types.ts";
 
 type EnvFileDetails = {
   name: string;
-  variables: EnvFileVariable[];
+  variables: BackendFileVariable[];
 };
 
 type EnvFileDetailsPageProps = {

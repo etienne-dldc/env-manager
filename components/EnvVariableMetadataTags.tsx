@@ -13,7 +13,7 @@ export const EnvVariableMetadataTags: FC<EnvVariableMetadataTagsProps> = (
     <Stack direction="row" align="center" gap={2}>
       {metadata.type ? <Tag>{`type: ${metadata.type}`}</Tag> : null}
       {metadata.secret ? <Tag color="red.500">secret</Tag> : null}
-      {metadata.optional ? <Tag color="gray.500">optional</Tag> : null}
+      {metadata.required ? <Tag color="gray.500">required</Tag> : null}
       {metadata.length !== undefined
         ? <Tag color="blue.500">{`length: ${metadata.length}`}</Tag>
         : null}
