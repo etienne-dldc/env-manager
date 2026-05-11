@@ -4,6 +4,7 @@ import * as v from "@valibot/valibot";
 import { type Context, Hono } from "hono";
 import { serveStatic } from "hono/deno";
 import { routePath } from "hono/route";
+import console from "node:console";
 import { VariableValueDisplay } from "./components/EnvVariableItem/VariableValueDisplay.tsx";
 import { VariableValueEdit } from "./components/EnvVariableItem/VariableValueEdit.tsx";
 import denoJson from "./deno.json" with { type: "json" };
@@ -128,13 +129,46 @@ app.post(
   },
 );
 
+app.post(
+  "/env/:name/variable",
+  sValidator(
+    "form",
+    v.object({
+      variableName: v.pipe(
+        v.string(),
+        v.trim(),
+        v.nonEmpty("Variable name is required"),
+      ),
+    }),
+  ),
+  async (c) => {
+    const rawName = c.req.param("name");
+    const name = decodeURIComponent(rawName);
+    const { variableName } = c.req.valid("form");
+    const redirectBase = `/env/${encodeURIComponent(name)}`;
+
+    try {
+      await backend.addVariable(name, variableName);
+      return redirectWithMessage(redirectBase, "ok", `Added ${variableName}`);
+    } catch (error) {
+      const message = error instanceof Error
+        ? error.message
+        : "Failed to add variable";
+      return redirectWithMessage(redirectBase, "error", message);
+    }
+  },
+);
+
 app.get("/env/:name", async (c) => {
   const rawName = c.req.param("name");
   const name = decodeURIComponent(rawName);
+  const { ok, error } = getFlash(c);
   const file = await backend.getFile(name);
   const variables = await backend.listVariables(name);
   const envFile = { name: file.name, variables };
-  return await c.html(<EnvFileDetailsPage envFile={envFile} />);
+  return await c.html(
+    <EnvFileDetailsPage envFile={envFile} ok={ok} error={error} />,
+  );
 });
 
 app.get(
@@ -186,13 +220,17 @@ app.post(
     v.object({
       envFileName: v.pipe(v.string(), v.trim(), v.nonEmpty()),
       variableName: v.pipe(v.string(), v.trim(), v.nonEmpty()),
-      value: v.string(),
+      value: v.optional(v.string()),
     }),
   ),
   async (c) => {
     const { envFileName, variableName, value } = c.req.valid("form");
 
-    await backend.updateVariable(envFileName, variableName, value);
+    try {
+      await backend.updateVariable(envFileName, variableName, value ?? "");
+    } catch (error) {
+      console.error(error);
+    }
     const variable = await backend.getVariable(envFileName, variableName);
     if (!variable) {
       return c.text("Variable not found after update", 404);
@@ -216,7 +254,11 @@ app.post(
   async (c) => {
     const { envFileName, variableName } = c.req.valid("query");
 
-    await backend.regenerateVariable(envFileName, variableName);
+    try {
+      await backend.regenerateVariable(envFileName, variableName);
+    } catch (error) {
+      console.error(error);
+    }
     const variable = await backend.getVariable(envFileName, variableName);
     if (!variable) {
       return c.text("Variable not found after generation", 404);

@@ -34,9 +34,15 @@ function validateNumber(value: string): string {
 }
 
 function validateBoolean(value: string): string {
+  if (value === "") {
+    return "false";
+  }
   const lower = value.toLowerCase();
-  if (lower === "true" || lower === "false") {
-    return lower;
+  if (lower === "true" || lower === "on") {
+    return "true";
+  }
+  if (lower === "false" || lower === "off") {
+    return "false";
   }
   throw new Error(`Invalid boolean: ${value}`);
 }

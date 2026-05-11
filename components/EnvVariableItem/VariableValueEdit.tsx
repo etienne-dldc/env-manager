@@ -42,6 +42,15 @@ export const VariableValueEdit: FC<VariableValueEditProps> = (
             />
           );
         }
+        if (variable.metadata.type === "number") {
+          return (
+            <NumberEdit
+              variable={variable}
+              envFileName={envFileName}
+              parentId={id}
+            />
+          );
+        }
         return (
           <TextEdit
             variable={variable}
@@ -73,6 +82,65 @@ function TextEdit(
       <InlineGroup>
         <Input
           type="text"
+          name="value"
+          value={variable.metadata.secret ? "" : variable.value}
+          placeholder={variable.source === "template"
+            ? variable.exampleValue
+            : undefined}
+          spellCheck={false}
+          size={10}
+          class={css`
+            ${utility.fontFamily("mono")};
+            flex: 1;
+          `}
+          autoFocus
+        />
+        <Button
+          type="submit"
+          size={10}
+          title={`Save ${variable.name}`}
+          aria-label={`Save ${variable.name}`}
+        >
+          <Icon icon={Check} size={4} />
+        </Button>
+        <Button
+          type="button"
+          size={10}
+          title={`Cancel ${variable.name}`}
+          aria-label={`Cancel ${variable.name}`}
+          hx-get={buildUrl("/partial/variable/display", {
+            envFileName,
+            variableName: variable.name,
+          })}
+          hx-target={`#${parentId}`}
+          hx-swap="outerHTML"
+        >
+          <Icon icon={X} size={4} />
+        </Button>
+      </InlineGroup>
+    </Stack>
+  );
+}
+
+function NumberEdit(
+  { variable, envFileName, parentId }: {
+    variable: BackendFileVariable;
+    envFileName: string;
+    parentId: string;
+  },
+) {
+  return (
+    <Stack direction="column" gap={0.5} inlines={["min-width: 0"]}>
+      <span
+        class={css`
+          ${utility.srOnly};
+        `}
+      >
+        Value
+      </span>{" "}
+      <InlineGroup>
+        <Input
+          type="number"
           name="value"
           value={variable.metadata.secret ? "" : variable.value}
           placeholder={variable.source === "template"

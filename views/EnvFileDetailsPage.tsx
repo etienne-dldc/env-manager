@@ -1,4 +1,13 @@
-import { Link, Paper, Stack, Typography, utility } from "@dldc/hono-ui";
+import {
+  Button,
+  InlineGroup,
+  Input,
+  Link,
+  Paper,
+  Stack,
+  Typography,
+  utility,
+} from "@dldc/hono-ui";
 import { css } from "hono/css";
 import type { FC } from "hono/jsx";
 import { EnvVariableItem } from "../components/EnvVariableItem.tsx";
@@ -12,10 +21,12 @@ type EnvFileDetails = {
 
 type EnvFileDetailsPageProps = {
   envFile: EnvFileDetails;
+  ok?: string | null;
+  error?: string | null;
 };
 
 export const EnvFileDetailsPage: FC<EnvFileDetailsPageProps> = (
-  { envFile },
+  { envFile, ok, error },
 ) => {
   const countClass = css`
     ${utility.textSize("sm")};
@@ -39,14 +50,14 @@ export const EnvFileDetailsPage: FC<EnvFileDetailsPageProps> = (
   `;
 
   return (
-    <Layout title={envFile.name}>
+    <Layout title={envFile.name} ok={ok} error={error}>
       <Stack direction="column" gap={3}>
         <Link href="/">
           ← Back to env files
         </Link>
 
         <Paper flexDirection="column" align="stretch">
-          <Stack direction="column" gap={2} padding={3}>
+          <Stack direction="column" gap={6} padding={4}>
             <div>
               <Typography render="h2" textSize="2xl" fontWeight="bold">
                 {envFile.name}
@@ -70,6 +81,45 @@ export const EnvFileDetailsPage: FC<EnvFileDetailsPageProps> = (
                 </ul>
               )
               : <p class={emptyClass}>This file has no variables yet.</p>}
+
+            <form
+              method="post"
+              action={`/env/${encodeURIComponent(envFile.name)}/variable`}
+              class={css`
+                ${utility.flex({
+                  gap: 2,
+                  direction: "column",
+                  align: "stretch",
+                })};
+              `}
+            >
+              <label
+                for="variableName"
+                class={css`
+                  ${utility.srOnly};
+                `}
+              >
+                Variable name
+              </label>
+              <InlineGroup>
+                <Input
+                  id="variableName"
+                  name="variableName"
+                  type="text"
+                  placeholder="VARIABLE_NAME"
+                  required
+                  size={10}
+                  autoComplete="off"
+                  spellCheck={false}
+                  class={css`
+                    flex: 1;
+                  `}
+                />
+                <Button type="submit" variant="primary" size={10}>
+                  Add variable
+                </Button>
+              </InlineGroup>
+            </form>
           </Stack>
         </Paper>
       </Stack>
