@@ -8,22 +8,28 @@ type LayoutProps = {
   flash?: Flash;
 };
 
+const successClass = css({
+  background: "green-800/10",
+  borderLeft: "[3px solid]",
+  color: "green-300",
+  borderRadius: 1,
+  cornerShape: "superellipse",
+  padding: "[10px 14px]",
+  fontSize: "sm",
+});
+
+const errorClass = css({
+  background: "red-800/10",
+  borderLeft: "[3px solid]",
+  color: "red-300",
+  borderRadius: 1,
+  cornerShape: "superellipse",
+  padding: "[10px 14px]",
+  fontSize: "sm",
+});
+
 export function Layout({ title, children, flash }: LayoutProps) {
-  const okClass = css({
-    background: "[#ecfdf5]",
-    color: "[#065f46]",
-    borderRadius: "[8px]",
-    padding: "[10px 12px]",
-  });
-
-  const errorClass = css({
-    background: "[#fef2f2]",
-    color: "[#991b1b]",
-    borderRadius: "[8px]",
-    padding: "[10px 12px]",
-  });
-
-  const flashClass = flash?.type === "success" ? okClass : errorClass;
+  const flashClass = flash?.type === "success" ? successClass : errorClass;
 
   return (
     <Html
