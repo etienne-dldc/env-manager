@@ -1,12 +1,12 @@
 import {
   Button,
+  css,
   Icon,
   InlineGroup,
   Input,
+  SrOnly,
   Stack,
-  utility,
 } from "@dldc/hono-ui";
-import { css } from "hono/css";
 import type { FC } from "hono/jsx";
 import { Pencil, RefreshCcw } from "lucide-static";
 import type { BackendFileVariable } from "../../logic/backend/types.ts";
@@ -32,7 +32,7 @@ export const VariableValueDisplay: FC<VariableValueDisplayProps> = (
       : variable.value;
 
   return (
-    <Stack id={id} direction="column" gap={2}>
+    <Stack id={id} flexDirection="column" gap={2}>
       <InlineGroup>
         <Input
           type="text"
@@ -40,18 +40,17 @@ export const VariableValueDisplay: FC<VariableValueDisplayProps> = (
           placeholder={variable.source === "template"
             ? variable.exampleValue
             : undefined}
-          readOnly
+          readonly
           spellCheck={false}
           size={10}
-          class={css`
-            ${utility.fontFamily("mono")};
-            flex: 1;
-          `}
+          classList={css({
+            fontFamily: "mono",
+            flex: "1",
+          })}
         />
         <Button
           type="button"
           size={10}
-          title={`Edit ${variable.name}`}
           aria-label={`Edit ${variable.name}`}
           hx-get={buildUrl("/partial/variable/edit", {
             envFileName,
@@ -61,13 +60,13 @@ export const VariableValueDisplay: FC<VariableValueDisplayProps> = (
           hx-swap="outerHTML"
         >
           <Icon icon={Pencil} size={4} />
+          <SrOnly>Edit {variable.name}</SrOnly>
         </Button>
         {canRegenerate
           ? (
             <Button
               type="button"
               size={10}
-              title={`Regenerate ${variable.name}`}
               aria-label={`Regenerate ${variable.name}`}
               hx-post={buildUrl("/partial/variable/generate", {
                 envFileName,
@@ -78,6 +77,7 @@ export const VariableValueDisplay: FC<VariableValueDisplayProps> = (
               hx-confirm={`Regenerate ${variable.name}? This will replace the current value.`}
             >
               <Icon icon={RefreshCcw} size={4} />
+              <SrOnly>Regenerate {variable.name}</SrOnly>
             </Button>
           )
           : null}

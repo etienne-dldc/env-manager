@@ -1,14 +1,14 @@
 import {
   Button,
+  css,
   InlineGroup,
   Input,
   Link,
   Paper,
+  srOnlyClass,
   Stack,
   Typography,
-  utility,
 } from "@dldc/hono-ui";
-import { css } from "hono/css";
 import type { FC } from "hono/jsx";
 import { EnvVariableItem } from "../components/EnvVariableItem.tsx";
 import { Layout } from "../components/Layout.tsx";
@@ -28,38 +28,38 @@ type EnvFileDetailsPageProps = {
 export const EnvFileDetailsPage: FC<EnvFileDetailsPageProps> = (
   { envFile, ok, error },
 ) => {
-  const countClass = css`
-    ${utility.textSize("sm")};
-    opacity: 0.75;
-    margin: 0;
-  `;
+  const countClass = css({
+    fontSize: "sm",
+    opacity: 0.75,
+    margin: 0,
+  });
 
-  const listClass = css`
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: grid;
-    gap: 0.85rem;
-  `;
+  const listClass = css({
+    listStyle: "none",
+    margin: 0,
+    padding: 0,
+    display: "grid",
+    gap: "[0.85rem]",
+  });
 
-  const emptyClass = css`
-    ${utility.textSize("sm")};
-    opacity: 0.8;
-    font-style: italic;
-    margin: 0;
-  `;
+  const emptyClass = css({
+    fontSize: "sm",
+    opacity: 0.8,
+    fontStyle: "italic",
+    margin: 0,
+  });
 
   return (
     <Layout title={envFile.name} ok={ok} error={error}>
-      <Stack direction="column" gap={3}>
+      <Stack flexDirection="column" gap={3}>
         <Link href="/">
           ← Back to env files
         </Link>
 
-        <Paper flexDirection="column" align="stretch">
-          <Stack direction="column" gap={6} padding={4}>
+        <Paper flexDirection="column" alignItems="stretch">
+          <Stack flexDirection="column" gap={6} padding={4}>
             <div>
-              <Typography render="h2" textSize="2xl" fontWeight="bold">
+              <Typography render="h2" fontSize="2xl" fontWeight="bold">
                 {envFile.name}
               </Typography>
               <p class={countClass}>
@@ -85,20 +85,14 @@ export const EnvFileDetailsPage: FC<EnvFileDetailsPageProps> = (
             <form
               method="post"
               action={`/env/${encodeURIComponent(envFile.name)}/variable`}
-              class={css`
-                ${utility.flex({
-                  gap: 2,
-                  direction: "column",
-                  align: "stretch",
-                })};
-              `}
+              class={css({
+                display: "flex",
+                flexDirection: "column",
+                gap: 2,
+                alignItems: "stretch",
+              })}
             >
-              <label
-                for="variableName"
-                class={css`
-                  ${utility.srOnly};
-                `}
-              >
+              <label for="variableName" class={srOnlyClass}>
                 Variable name
               </label>
               <InlineGroup>
@@ -109,11 +103,9 @@ export const EnvFileDetailsPage: FC<EnvFileDetailsPageProps> = (
                   placeholder="VARIABLE_NAME"
                   required
                   size={10}
-                  autoComplete="off"
+                  autocomplete="off"
                   spellCheck={false}
-                  class={css`
-                    flex: 1;
-                  `}
+                  classList={css({ flex: "1" })}
                 />
                 <Button type="submit" variant="primary" size={10}>
                   Add variable

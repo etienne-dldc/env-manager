@@ -1,13 +1,13 @@
 import {
   Button,
+  css,
   InlineGroup,
   Input,
   Paper,
+  srOnlyClass,
+  Stack,
   Typography,
-  utility,
 } from "@dldc/hono-ui";
-import { css } from "hono/css";
-import type { FC } from "hono/jsx";
 import { EnvFilesList } from "../components/EnvFilesList.tsx";
 import { Layout } from "../components/Layout.tsx";
 import type { BackendFile } from "../logic/backend/types.ts";
@@ -18,9 +18,7 @@ type AppsPageProps = {
   envFiles: BackendFile[];
 };
 
-export const AppsPage: FC<AppsPageProps> = (
-  { ok, error, envFiles },
-) => {
+export const HomePage = ({ ok, error, envFiles }: AppsPageProps) => {
   return (
     <Layout title="Apps" ok={ok} error={error}>
       <Paper
@@ -28,24 +26,13 @@ export const AppsPage: FC<AppsPageProps> = (
         flexDirection="column"
         padding={4}
       >
-        <Typography textSize="2xl" fontWeight="bold" render="h2">
+        <Typography fontSize="2xl" fontWeight="bold" render="h2">
           Files
         </Typography>
         <EnvFilesList envFiles={envFiles} />
 
-        <form
-          method="post"
-          action="/env"
-          class={css`
-            ${utility.flex({ gap: 2, direction: "column", align: "stretch" })};
-          `}
-        >
-          <label
-            for="name"
-            class={css`
-              ${utility.srOnly};
-            `}
-          >
+        <Stack render={<form method="post" action="/env" />}>
+          <label for="name" class={srOnlyClass}>
             Env file name
           </label>
           <InlineGroup>
@@ -56,11 +43,40 @@ export const AppsPage: FC<AppsPageProps> = (
               placeholder="app or .env.app"
               required
               size={10}
-              autoComplete="off"
+              autocomplete="off"
               spellCheck={false}
-              class={css`
-                flex: 1;
-              `}
+              classList={css({ flex: "1" })}
+            />
+            <Button type="submit" variant="primary" size={10}>
+              Create file
+            </Button>
+          </InlineGroup>
+        </Stack>
+
+        <form
+          method="post"
+          action="/env"
+          class={css({
+            display: "flex",
+            flexDirection: "column",
+            gap: 2,
+            alignItems: "stretch",
+          })}
+        >
+          <label for="name" class={srOnlyClass}>
+            Env file name
+          </label>
+          <InlineGroup>
+            <Input
+              id="name"
+              name="name"
+              type="text"
+              placeholder="app or .env.app"
+              required
+              size={10}
+              autocomplete="off"
+              spellCheck={false}
+              classList={css({ flex: "1" })}
             />
             <Button type="submit" variant="primary" size={10}>
               Create file

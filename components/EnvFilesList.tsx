@@ -1,5 +1,4 @@
-import { ButtonLink, Icon, Stack, tokens, utility } from "@dldc/hono-ui";
-import { css } from "hono/css";
+import { ButtonLink, css, Icon, Stack, tokens } from "@dldc/hono-ui";
 import { type FC, Fragment } from "hono/jsx";
 import { AlertTriangle, FileKey } from "lucide-static";
 import type { BackendFile } from "../logic/backend/types.ts";
@@ -11,26 +10,26 @@ type EnvFilesListProps = {
 export const EnvFilesList: FC<EnvFilesListProps> = (
   { envFiles },
 ) => {
-  const listClass = css`
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: grid;
-    gap: 0.65rem;
-  `;
+  const listClass = css({
+    listStyle: "none",
+    margin: 0,
+    padding: 0,
+    display: "grid",
+    gap: "[0.65rem]",
+  });
 
-  const fileNameClass = css`
-    ${utility.fontWeight("semibold")};
-    ${utility.textColor("neutral.100")};
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  `;
+  const fileNameClass = css({
+    fontWeight: "semibold",
+    color: "neutral-100",
+    fontFamily: "mono",
+  });
 
-  const emptyClass = css`
-    ${utility.textSize("sm")};
-    font-style: italic;
-    opacity: 0.8;
-    margin: 0;
-  `;
+  const emptyClass = css({
+    fontSize: "sm",
+    fontStyle: "italic",
+    opacity: 0.8,
+    margin: 0,
+  });
 
   return (
     <Fragment>
@@ -41,18 +40,16 @@ export const EnvFilesList: FC<EnvFilesListProps> = (
               <li key={file.name}>
                 <ButtonLink
                   size={10}
-                  class={css`
-                    width: 100%;
-                  `}
+                  classList={css({ width: "full" })}
                   href={`/env/${encodeURIComponent(file.name)}`}
                 >
-                  <Stack direction="row" align="center" gap={2}>
+                  <Stack flexDirection="row" alignItems="center" gap={2}>
                     {file.source === "template"
                       ? (
                         <Icon
                           icon={AlertTriangle}
                           size={4}
-                          color={tokens.c("amber.500")}
+                          color={tokens.c("amber-500")}
                         />
                       )
                       : <Icon icon={FileKey} size={4} />}

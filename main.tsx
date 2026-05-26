@@ -14,9 +14,9 @@ import {
 } from "./logic/backend/backend.ts";
 import { appEnv, logEnvConfiguration } from "./logic/env.ts";
 import { redirectWithMessage } from "./logic/redirectWithMessage.ts";
-import { AppsPage } from "./views/AppsPage.tsx";
 import { EnvFileDetailsPage } from "./views/EnvFileDetailsPage.tsx";
 import { ErrorPage } from "./views/ErrorPage.tsx";
+import { HomePage } from "./views/HomePage.tsx";
 import { NotFoundPage } from "./views/NotFoundPage.tsx";
 
 console.log(`Starting Env Manager v${denoJson.version}`);
@@ -101,7 +101,7 @@ app.get("/", async (c) => {
   const envFiles = await backend.listFiles();
 
   return await c.html(
-    <AppsPage ok={ok} error={error} envFiles={envFiles} />,
+    <HomePage ok={ok} error={error} envFiles={envFiles} />,
   );
 });
 

@@ -1,6 +1,6 @@
 import { resolve } from "@std/path";
 import {
-  EnvMetadata,
+  type EnvMetadata,
   type EnvVariable,
   serializeEnvFile,
 } from "../envFormat.ts";

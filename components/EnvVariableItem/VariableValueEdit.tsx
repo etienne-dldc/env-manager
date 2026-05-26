@@ -1,13 +1,14 @@
 import {
   Button,
+  css,
   Icon,
   InlineGroup,
   Input,
+  SrOnly,
+  srOnlyClass,
   Stack,
   Toggle,
-  utility,
 } from "@dldc/hono-ui";
-import { css } from "hono/css";
 import type { FC } from "hono/jsx";
 import { Check, X } from "lucide-static";
 import type { BackendFileVariable } from "../../logic/backend/types.ts";
@@ -71,12 +72,8 @@ function TextEdit(
   },
 ) {
   return (
-    <Stack direction="column" gap={0.5} inlines={["min-width: 0"]}>
-      <span
-        class={css`
-          ${utility.srOnly};
-        `}
-      >
+    <Stack flexDirection="column" gap={0.5} classList={css({ minWidth: 0 })}>
+      <span class={srOnlyClass}>
         Value
       </span>{" "}
       <InlineGroup>
@@ -89,24 +86,20 @@ function TextEdit(
             : undefined}
           spellCheck={false}
           size={10}
-          class={css`
-            ${utility.fontFamily("mono")};
-            flex: 1;
-          `}
-          autoFocus
+          classList={css({ fontFamily: "mono", flex: "1" })}
+          autofocus
         />
         <Button
           type="submit"
           size={10}
-          title={`Save ${variable.name}`}
           aria-label={`Save ${variable.name}`}
         >
           <Icon icon={Check} size={4} />
+          <SrOnly>Save {variable.name}</SrOnly>
         </Button>
         <Button
           type="button"
           size={10}
-          title={`Cancel ${variable.name}`}
           aria-label={`Cancel ${variable.name}`}
           hx-get={buildUrl("/partial/variable/display", {
             envFileName,
@@ -116,6 +109,7 @@ function TextEdit(
           hx-swap="outerHTML"
         >
           <Icon icon={X} size={4} />
+          <SrOnly>Cancel {variable.name}</SrOnly>
         </Button>
       </InlineGroup>
     </Stack>
@@ -130,12 +124,8 @@ function NumberEdit(
   },
 ) {
   return (
-    <Stack direction="column" gap={0.5} inlines={["min-width: 0"]}>
-      <span
-        class={css`
-          ${utility.srOnly};
-        `}
-      >
+    <Stack flexDirection="column" gap={0.5} classList={css({ minWidth: 0 })}>
+      <span class={srOnlyClass}>
         Value
       </span>{" "}
       <InlineGroup>
@@ -148,24 +138,20 @@ function NumberEdit(
             : undefined}
           spellCheck={false}
           size={10}
-          class={css`
-            ${utility.fontFamily("mono")};
-            flex: 1;
-          `}
-          autoFocus
+          classList={css({ fontFamily: "mono", flex: "1" })}
+          autofocus
         />
         <Button
           type="submit"
           size={10}
-          title={`Save ${variable.name}`}
           aria-label={`Save ${variable.name}`}
         >
           <Icon icon={Check} size={4} />
+          <SrOnly>Save {variable.name}</SrOnly>
         </Button>
         <Button
           type="button"
           size={10}
-          title={`Cancel ${variable.name}`}
           aria-label={`Cancel ${variable.name}`}
           hx-get={buildUrl("/partial/variable/display", {
             envFileName,
@@ -175,6 +161,7 @@ function NumberEdit(
           hx-swap="outerHTML"
         >
           <Icon icon={X} size={4} />
+          <SrOnly>Cancel {variable.name}</SrOnly>
         </Button>
       </InlineGroup>
     </Stack>
@@ -190,25 +177,24 @@ function BooleanEdit(
 ) {
   return (
     <Stack
-      direction="row"
-      align="center"
-      justify="between"
+      flexDirection="row"
+      alignItems="center"
+      justifyContent="space-between"
       gap={0.5}
-      inlines={["min-width: 0"]}
+      classList={css({ minWidth: 0 })}
     >
       <Toggle name="value" checked={variable.value === "true"} />
       <InlineGroup>
         <Button
           type="submit"
-          title={`Save ${variable.name}`}
           aria-label={`Save ${variable.name}`}
           size={10}
         >
           <Icon icon={Check} size={4} />
+          <SrOnly>Save {variable.name}</SrOnly>
         </Button>
         <Button
           type="button"
-          title={`Cancel ${variable.name}`}
           aria-label={`Cancel ${variable.name}`}
           size={10}
           hx-get={buildUrl("/partial/variable/display", {
@@ -219,6 +205,7 @@ function BooleanEdit(
           hx-swap="outerHTML"
         >
           <Icon icon={X} size={4} />
+          <SrOnly>Cancel {variable.name}</SrOnly>
         </Button>
       </InlineGroup>
     </Stack>

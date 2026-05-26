@@ -1,5 +1,4 @@
-import { Stack, utility } from "@dldc/hono-ui";
-import { css } from "hono/css";
+import { css, Stack } from "@dldc/hono-ui";
 import type { FC } from "hono/jsx";
 import type { BackendFileVariable } from "../logic/backend/types.ts";
 import { EnvVariableIcon } from "./EnvVariableIcon.tsx";
@@ -14,29 +13,33 @@ type EnvVariableItemProps = {
 export const EnvVariableItem: FC<EnvVariableItemProps> = (
   { envFileName, variable },
 ) => {
-  const sectionClass = css`
-    min-width: 0;
-  `;
+  const sectionClass = css({
+    minWidth: 0,
+  });
 
-  const nameRowClass = css`
-    flex-wrap: wrap;
-  `;
+  const nameRowClass = css({
+    flexWrap: "wrap",
+  });
 
-  const nameClass = css`
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    ${utility.fontWeight("bold")};
-  `;
+  const nameClass = css({
+    fontFamily: "mono",
+  });
 
-  const descriptionClass = css`
-    ${utility.textSize("sm")};
-    ${utility.textColor("neutral.500")};
-    margin: 0;
-  `;
+  const descriptionClass = css({
+    fontSize: "sm",
+    color: "neutral-500",
+    margin: 0,
+  });
 
   return (
-    <Stack render="li" direction="column" gap={2}>
-      <Stack direction="column" gap={1} class={sectionClass}>
-        <Stack direction="row" align="center" gap={2} class={nameRowClass}>
+    <Stack render="li" flexDirection="column" gap={2}>
+      <Stack flexDirection="column" gap={1} classList={sectionClass}>
+        <Stack
+          flexDirection="row"
+          alignItems="center"
+          gap={2}
+          classList={nameRowClass}
+        >
           <EnvVariableIcon variable={variable} />
           <span class={nameClass}>{variable.name}</span>
           <EnvVariableMetadataTags metadata={variable.metadata} />

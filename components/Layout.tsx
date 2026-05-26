@@ -1,30 +1,27 @@
-import { Html, Title, UniversalLayout, utility } from "@dldc/hono-ui";
-import { css } from "hono/css";
-import { type FC, Fragment } from "hono/jsx";
+import { css, Html, Title, UniversalLayout } from "@dldc/hono-ui";
+import { type Child, Fragment } from "hono/jsx";
 
 type LayoutProps = {
   title?: string;
-  children: unknown;
+  children: Child;
   ok?: string | null;
   error?: string | null;
 };
 
-export const Layout: FC<LayoutProps> = (
-  { title, children, ok, error },
-) => {
-  const okClass = css`
-    background: #ecfdf5;
-    color: #065f46;
-    border-radius: 8px;
-    padding: 10px 12px;
-  `;
+export function Layout({ title, children, ok, error }: LayoutProps) {
+  const okClass = css({
+    background: "[#ecfdf5]",
+    color: "[#065f46]",
+    borderRadius: "[8px]",
+    padding: "[10px 12px]",
+  });
 
-  const errorClass = css`
-    background: #fef2f2;
-    color: #991b1b;
-    border-radius: 8px;
-    padding: 10px 12px;
-  `;
+  const errorClass = css({
+    background: "[#fef2f2]",
+    color: "[#991b1b]",
+    borderRadius: "[8px]",
+    padding: "[10px 12px]",
+  });
 
   return (
     <Html
@@ -45,11 +42,7 @@ export const Layout: FC<LayoutProps> = (
         </Fragment>
       }
     >
-      <UniversalLayout
-        class={css`
-          ${utility.rowGap(4)};
-        `}
-      >
+      <UniversalLayout classList={css({ rowGap: "[16px]" })}>
         <Title>
           Env Manager
         </Title>
@@ -59,4 +52,4 @@ export const Layout: FC<LayoutProps> = (
       </UniversalLayout>
     </Html>
   );
-};
+}

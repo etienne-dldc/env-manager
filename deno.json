@@ -6,20 +6,21 @@
     "bump": "deno run -A jsr:@mys/bump@1",
     "deps:outdated": "deno outdated",
     "deps:update": "deno outdated --update --latest --interactive",
+    "check": "deno fmt --check . && deno lint . && deno check .",
     "start": "deno run --allow-net --allow-env --allow-read=/app,/data --allow-write=/data --allow-run=curl --no-prompt main.tsx",
     "dev": "ENV_FOLDER=./.data/env ENV_TEMPLATE_FOLDER=./.data/env-template deno run --allow-net --allow-env --allow-read=. --allow-write=./.data --allow-run=curl --no-prompt --watch main.tsx",
     "test:run": "deno test --allow-all"
   },
   "imports": {
-    "@dldc/hono-ui": "jsr:@dldc/hono-ui@^1.10.0",
-    "@hono/hono": "jsr:@hono/hono@^4.12.15",
+    "@dldc/hono-ui": "jsr:@dldc/hono-ui@^2.3.4",
+    "@hono/hono": "jsr:@hono/hono@^4.12.23",
     "@hono/standard-validator": "jsr:@hono/standard-validator@^0.2.2",
     "@opentelemetry/api": "npm:@opentelemetry/api@^1.9.1",
     "@std/expect": "jsr:@std/expect@^1.0.19",
-    "@std/path": "jsr:@std/path@^1.1.4",
-    "@valibot/valibot": "jsr:@valibot/valibot@^1.4.0",
-    "hono": "jsr:@hono/hono@^4.12.14",
-    "lucide-static": "npm:lucide-static@^1.14.0"
+    "@std/path": "jsr:@std/path@^1.1.5",
+    "@valibot/valibot": "jsr:@valibot/valibot@^1.4.1",
+    "hono": "jsr:@hono/hono@^4.12.23",
+    "lucide-static": "npm:lucide-static@^1.16.0"
   },
   "compilerOptions": {
     "jsx": "react-jsx",
