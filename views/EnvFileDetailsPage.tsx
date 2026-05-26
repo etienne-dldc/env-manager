@@ -4,6 +4,7 @@ import { CreateVariableForm } from "../components/CreateVariableForm.tsx";
 import { EnvVariableItem } from "../components/EnvVariableItem.tsx";
 import { Layout } from "../components/Layout.tsx";
 import type { BackendFileVariable } from "../logic/backend/types.ts";
+import type { Flash } from "../logic/flash.ts";
 
 type EnvFileDetails = {
   name: string;
@@ -12,8 +13,7 @@ type EnvFileDetails = {
 
 type EnvFileDetailsPageProps = {
   envFile: EnvFileDetails;
-  ok?: string | null;
-  error?: string | null;
+  flash?: Flash;
 };
 
 const countClass = css({ fontSize: "sm", opacity: 0.75, margin: 0 });
@@ -34,10 +34,10 @@ const emptyClass = css({
 });
 
 export const EnvFileDetailsPage: FC<EnvFileDetailsPageProps> = (
-  { envFile, ok, error },
+  { envFile, flash },
 ) => {
   return (
-    <Layout title={envFile.name} ok={ok} error={error}>
+    <Layout title={envFile.name} flash={flash}>
       <Stack flexDirection="column" gap={3}>
         <Stack
           flexDirection="row"

@@ -2,6 +2,7 @@ import { sValidator } from "@hono/standard-validator";
 import { SpanStatusCode, trace } from "@opentelemetry/api";
 import * as v from "@valibot/valibot";
 import { type Context, Hono } from "hono";
+import { deleteCookie, getCookie } from "hono/cookie";
 import { serveStatic } from "hono/deno";
 import { routePath } from "hono/route";
 import console from "node:console";
@@ -13,7 +14,8 @@ import {
   normalizeBackendFileName,
 } from "./logic/backend/backend.ts";
 import { appEnv, logEnvConfiguration } from "./logic/env.ts";
-import { redirectWithMessage } from "./logic/redirectWithMessage.ts";
+import { FLASH_COOKIE_NAME, parseFlash } from "./logic/flash.ts";
+import { redirect } from "./logic/redirectTo.ts";
 import { EnvFileDetailsPage } from "./views/EnvFileDetailsPage.tsx";
 import { ErrorPage } from "./views/ErrorPage.tsx";
 import { HomePage } from "./views/HomePage.tsx";
@@ -30,14 +32,30 @@ const backend = createBackend({
   envTemplatesFolder: appEnv.envTemplateFolder,
 });
 
-function getFlash(c: Context) {
-  return {
-    ok: c.req.query("ok") ?? null,
-    error: c.req.query("error") ?? null,
-  };
+const app = new Hono();
+
+app.use("*", async (c, next) => {
+  const flashCookie = getCookie(c, FLASH_COOKIE_NAME);
+  const flash = parseFlash(flashCookie);
+  if (flash) {
+    c.set("flash", flash);
+  }
+  await next();
+});
+
+function setFlash(c: Context, type: "success" | "error", message: string) {
+  c.set("flash", { type, message });
 }
 
-const app = new Hono();
+function renderPage(
+  c: Context,
+  fn: () => Response | Promise<Response>,
+): Response | Promise<Response> {
+  if (c.get("flash")) {
+    deleteCookie(c, FLASH_COOKIE_NAME, { path: "/" });
+  }
+  return fn();
+}
 
 app.use("*", async (c, next) => {
   try {
@@ -97,11 +115,10 @@ app.notFound((c) => {
 });
 
 app.get("/", async (c) => {
-  const { ok, error } = getFlash(c);
   const envFiles = await backend.listFiles();
-
-  return await c.html(
-    <HomePage ok={ok} error={error} envFiles={envFiles} />,
+  return renderPage(
+    c,
+    () => c.html(<HomePage flash={c.get("flash")} envFiles={envFiles} />),
   );
 });
 
@@ -119,12 +136,14 @@ app.post(
     try {
       const name = normalizeBackendFileName(rawName);
       await backend.createFile(name);
-      return redirectWithMessage("/", "ok", `Created ${name}`);
+      setFlash(c, "success", `Created ${name}`);
+      return redirect(c, "/");
     } catch (error) {
       const message = error instanceof Error
         ? error.message
         : "Failed to create env file";
-      return redirectWithMessage("/", "error", message);
+      setFlash(c, "error", message);
+      return redirect(c, "/");
     }
   },
 );
@@ -149,12 +168,14 @@ app.post(
 
     try {
       await backend.addVariable(name, variableName);
-      return redirectWithMessage(redirectBase, "ok", `Added ${variableName}`);
+      setFlash(c, "success", `Added ${variableName}`);
+      return redirect(c, redirectBase);
     } catch (error) {
       const message = error instanceof Error
         ? error.message
         : "Failed to add variable";
-      return redirectWithMessage(redirectBase, "error", message);
+      setFlash(c, "error", message);
+      return redirect(c, redirectBase);
     }
   },
 );
@@ -163,24 +184,20 @@ app.post("/env/:name/delete", async (c) => {
   const rawName = c.req.param("name");
   const name = decodeURIComponent(rawName);
   await backend.deleteFile(name);
-  const isHtmx = c.req.header("HX-Request") === "true";
-  if (isHtmx) {
-    return c.text("Deconnexion effectuee", 200, {
-      "HX-Redirect": "/",
-    });
-  }
-  return redirectWithMessage("/", "ok", `Deleted ${name}`);
+  setFlash(c, "success", `Deleted ${name}`);
+  return redirect(c, "/");
 });
 
 app.get("/env/:name", async (c) => {
   const rawName = c.req.param("name");
   const name = decodeURIComponent(rawName);
-  const { ok, error } = getFlash(c);
   const file = await backend.getFile(name);
   const variables = await backend.listVariables(name);
   const envFile = { name: file.name, variables };
-  return await c.html(
-    <EnvFileDetailsPage envFile={envFile} ok={ok} error={error} />,
+  return renderPage(
+    c,
+    () =>
+      c.html(<EnvFileDetailsPage envFile={envFile} flash={c.get("flash")} />),
   );
 });
 

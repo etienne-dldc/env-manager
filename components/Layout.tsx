@@ -1,14 +1,14 @@
 import { css, Html, Title, UniversalLayout } from "@dldc/hono-ui";
 import { type Child, Fragment } from "hono/jsx";
+import type { Flash } from "../logic/flash.ts";
 
 type LayoutProps = {
   title?: string;
   children: Child;
-  ok?: string | null;
-  error?: string | null;
+  flash?: Flash;
 };
 
-export function Layout({ title, children, ok, error }: LayoutProps) {
+export function Layout({ title, children, flash }: LayoutProps) {
   const okClass = css({
     background: "[#ecfdf5]",
     color: "[#065f46]",
@@ -22,6 +22,8 @@ export function Layout({ title, children, ok, error }: LayoutProps) {
     borderRadius: "[8px]",
     padding: "[10px 12px]",
   });
+
+  const flashClass = flash?.type === "success" ? okClass : errorClass;
 
   return (
     <Html
@@ -46,8 +48,7 @@ export function Layout({ title, children, ok, error }: LayoutProps) {
         <Title>
           Env Manager
         </Title>
-        {ok ? <div class={okClass}>{ok}</div> : null}
-        {error ? <div class={errorClass}>{error}</div> : null}
+        {flash ? <div class={flashClass}>{flash.message}</div> : null}
         {children}
       </UniversalLayout>
     </Html>

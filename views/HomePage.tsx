@@ -10,16 +10,16 @@ import {
 import { EnvFilesList } from "../components/EnvFilesList.tsx";
 import { Layout } from "../components/Layout.tsx";
 import type { BackendFile } from "../logic/backend/types.ts";
+import type { Flash } from "../logic/flash.ts";
 
 type AppsPageProps = {
-  ok?: string | null;
-  error?: string | null;
+  flash?: Flash;
   envFiles: BackendFile[];
 };
 
-export const HomePage = ({ ok, error, envFiles }: AppsPageProps) => {
+export const HomePage = ({ flash, envFiles }: AppsPageProps) => {
   return (
-    <Layout title="Apps" ok={ok} error={error}>
+    <Layout title="Apps" flash={flash}>
       <Paper
         gap={4}
         flexDirection="column"
