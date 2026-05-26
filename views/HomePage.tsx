@@ -5,7 +5,6 @@ import {
   Input,
   Paper,
   srOnlyClass,
-  Stack,
   Typography,
 } from "@dldc/hono-ui";
 import { EnvFilesList } from "../components/EnvFilesList.tsx";
@@ -30,28 +29,6 @@ export const HomePage = ({ ok, error, envFiles }: AppsPageProps) => {
           Files
         </Typography>
         <EnvFilesList envFiles={envFiles} />
-
-        <Stack render={<form method="post" action="/env" />}>
-          <label for="name" class={srOnlyClass}>
-            Env file name
-          </label>
-          <InlineGroup>
-            <Input
-              id="name"
-              name="name"
-              type="text"
-              placeholder="app or .env.app"
-              required
-              size={10}
-              autocomplete="off"
-              spellCheck={false}
-              classList={css({ flex: "1" })}
-            />
-            <Button type="submit" variant="primary" size={10}>
-              Create file
-            </Button>
-          </InlineGroup>
-        </Stack>
 
         <form
           method="post"

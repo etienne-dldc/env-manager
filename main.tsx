@@ -159,6 +159,19 @@ app.post(
   },
 );
 
+app.post("/env/:name/delete", async (c) => {
+  const rawName = c.req.param("name");
+  const name = decodeURIComponent(rawName);
+  await backend.deleteFile(name);
+  const isHtmx = c.req.header("HX-Request") === "true";
+  if (isHtmx) {
+    return c.text("Deconnexion effectuee", 200, {
+      "HX-Redirect": "/",
+    });
+  }
+  return redirectWithMessage("/", "ok", `Deleted ${name}`);
+});
+
 app.get("/env/:name", async (c) => {
   const rawName = c.req.param("name");
   const name = decodeURIComponent(rawName);
