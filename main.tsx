@@ -1,7 +1,7 @@
 import { sValidator } from "@hono/standard-validator";
 import { SpanStatusCode, trace } from "@opentelemetry/api";
 import * as v from "@valibot/valibot";
-import { type Context, Hono } from "hono";
+import { Hono } from "hono";
 import { serveStatic } from "hono/deno";
 import { routePath } from "hono/route";
 import { VariableValueDisplay } from "./components/EnvVariableItem/VariableValueDisplay.tsx";
@@ -12,7 +12,8 @@ import {
   normalizeBackendFileName,
 } from "./logic/backend/backend.ts";
 import { appEnv, logEnvConfiguration } from "./logic/env.ts";
-import { redirectWithMessage } from "./logic/redirectWithMessage.ts";
+import { getFlash, setFlash } from "./logic/flash.ts";
+import { redirectTo } from "./logic/redirectTo.ts";
 import { AppsPage } from "./views/AppsPage.tsx";
 import { EnvFileDetailsPage } from "./views/EnvFileDetailsPage.tsx";
 import { ErrorPage } from "./views/ErrorPage.tsx";
@@ -28,13 +29,6 @@ const backend = createBackend({
   envFilesFolder: appEnv.envFolder,
   envTemplatesFolder: appEnv.envTemplateFolder,
 });
-
-function getFlash(c: Context) {
-  return {
-    ok: c.req.query("ok") ?? null,
-    error: c.req.query("error") ?? null,
-  };
-}
 
 const app = new Hono();
 
@@ -118,12 +112,14 @@ app.post(
     try {
       const name = normalizeBackendFileName(rawName);
       await backend.createFile(name);
-      return redirectWithMessage("/", "ok", `Created ${name}`);
+      setFlash(c, "ok", `Created ${name}`);
+      return redirectTo("/");
     } catch (error) {
       const message = error instanceof Error
         ? error.message
         : "Failed to create env file";
-      return redirectWithMessage("/", "error", message);
+      setFlash(c, "error", message);
+      return redirectTo("/");
     }
   },
 );
@@ -131,10 +127,28 @@ app.post(
 app.get("/env/:name", async (c) => {
   const rawName = c.req.param("name");
   const name = decodeURIComponent(rawName);
+  const { ok, error } = getFlash(c);
   const file = await backend.getFile(name);
   const variables = await backend.listVariables(name);
   const envFile = { name: file.name, variables };
-  return await c.html(<EnvFileDetailsPage envFile={envFile} />);
+  return await c.html(<EnvFileDetailsPage envFile={envFile} ok={ok} error={error} />);
+});
+
+app.post("/env/:name/delete", async (c) => {
+  const rawName = c.req.param("name");
+  const name = decodeURIComponent(rawName);
+
+  try {
+    await backend.deleteFile(name);
+    setFlash(c, "ok", `Deleted ${name}`);
+  } catch (error) {
+    const message = error instanceof Error
+      ? error.message
+      : "Failed to delete env file";
+    setFlash(c, "error", message);
+  }
+
+  return redirectTo("/");
 });
 
 app.get(

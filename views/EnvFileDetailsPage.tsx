@@ -1,4 +1,4 @@
-import { Link, Paper, Stack, Typography, utility } from "@dldc/hono-ui";
+import { Button, Link, Paper, Stack, Typography, utility } from "@dldc/hono-ui";
 import { css } from "hono/css";
 import type { FC } from "hono/jsx";
 import { EnvVariableItem } from "../components/EnvVariableItem.tsx";
@@ -12,10 +12,12 @@ type EnvFileDetails = {
 
 type EnvFileDetailsPageProps = {
   envFile: EnvFileDetails;
+  ok?: string | null;
+  error?: string | null;
 };
 
 export const EnvFileDetailsPage: FC<EnvFileDetailsPageProps> = (
-  { envFile },
+  { envFile, ok, error },
 ) => {
   const countClass = css`
     ${utility.textSize("sm")};
@@ -39,7 +41,7 @@ export const EnvFileDetailsPage: FC<EnvFileDetailsPageProps> = (
   `;
 
   return (
-    <Layout title={envFile.name}>
+    <Layout title={envFile.name} ok={ok} error={error}>
       <Stack direction="column" gap={3}>
         <Link href="/">
           ← Back to env files
@@ -72,6 +74,20 @@ export const EnvFileDetailsPage: FC<EnvFileDetailsPageProps> = (
               : <p class={emptyClass}>This file has no variables yet.</p>}
           </Stack>
         </Paper>
+
+        <form
+          method="post"
+          action={`/env/${encodeURIComponent(envFile.name)}/delete`}
+        >
+          <Button
+            type="submit"
+            variant="danger"
+            size={10}
+            onClick="return confirm('Are you sure you want to delete this file?')"
+          >
+            Delete file
+          </Button>
+        </form>
       </Stack>
     </Layout>
   );
