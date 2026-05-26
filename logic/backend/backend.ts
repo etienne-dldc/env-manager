@@ -31,6 +31,10 @@ export interface Backend {
     fileName: string,
     variableName: string,
   ): Promise<void>;
+  deleteVariable(
+    fileName: string,
+    variableName: string,
+  ): Promise<void>;
   createFile(name: string): Promise<void>;
   deleteFile(name: string): Promise<void>;
 }
@@ -51,6 +55,7 @@ export function createBackend(
     updateVariable,
     addVariable,
     regenerateVariable,
+    deleteVariable,
     createFile,
     deleteFile,
   };
@@ -110,6 +115,15 @@ export function createBackend(
       variableName,
     );
     await saveVariable(regenerateVariableInternal(variable));
+  }
+
+  async function deleteVariable(
+    fileName: string,
+    variableName: string,
+  ) {
+    const { variables, saveFile } = await resolveVariables(fileName);
+    const updatedVariables = variables.filter((v) => v.name !== variableName);
+    await saveFile(updatedVariables);
   }
 
   async function createFile(name: string) {

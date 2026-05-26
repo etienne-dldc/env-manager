@@ -1,6 +1,8 @@
-import { css, Stack } from "@dldc/hono-ui";
+import { Button, css, Icon, SrOnly, Stack } from "@dldc/hono-ui";
 import type { FC } from "hono/jsx";
+import { Trash2 } from "lucide-static";
 import type { BackendFileVariable } from "../logic/backend/types.ts";
+import { randomId } from "../logic/randomId.ts";
 import { EnvVariableIcon } from "./EnvVariableIcon.tsx";
 import { VariableValueDisplay } from "./EnvVariableItem/VariableValueDisplay.tsx";
 import { EnvVariableMetadataTags } from "./EnvVariableMetadataTags.tsx";
@@ -13,6 +15,8 @@ type EnvVariableItemProps = {
 export const EnvVariableItem: FC<EnvVariableItemProps> = (
   { envFileName, variable },
 ) => {
+  const listItemId = randomId();
+
   const sectionClass = css({
     minWidth: 0,
   });
@@ -32,7 +36,7 @@ export const EnvVariableItem: FC<EnvVariableItemProps> = (
   });
 
   return (
-    <Stack render="li" flexDirection="column" gap={2}>
+    <Stack render="li" id={listItemId} flexDirection="column" gap={2}>
       <Stack flexDirection="column" gap={1} classList={sectionClass}>
         <Stack
           flexDirection="row"
@@ -42,6 +46,20 @@ export const EnvVariableItem: FC<EnvVariableItemProps> = (
         >
           <EnvVariableIcon variable={variable} />
           <span class={nameClass}>{variable.name}</span>
+          <Button
+            type="button"
+            size={6}
+            aria-label={`Delete ${variable.name}`}
+            hx-post={`/env/${encodeURIComponent(envFileName)}/variable/${
+              encodeURIComponent(variable.name)
+            }/delete`}
+            hx-target={`#${listItemId}`}
+            hx-swap="outerHTML"
+            hx-confirm={`Delete variable ${variable.name}?`}
+          >
+            <Icon icon={Trash2} size={3} />
+            <SrOnly>Delete {variable.name}</SrOnly>
+          </Button>
           <EnvVariableMetadataTags metadata={variable.metadata} />
         </Stack>
 

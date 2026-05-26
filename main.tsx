@@ -188,6 +188,13 @@ app.post("/env/:name/delete", async (c) => {
   return redirect(c, "/");
 });
 
+app.post("/env/:name/variable/:variableName/delete", async (c) => {
+  const name = decodeURIComponent(c.req.param("name"));
+  const variableName = decodeURIComponent(c.req.param("variableName"));
+  await backend.deleteVariable(name, variableName);
+  return c.body(null, 200);
+});
+
 app.get("/env/:name", async (c) => {
   const rawName = c.req.param("name");
   const name = decodeURIComponent(rawName);
