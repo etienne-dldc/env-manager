@@ -62,7 +62,8 @@ export const EnvFilesList: FC<EnvFilesListProps> = (
         )
         : (
           <p class={emptyClass}>
-            No env files found. Add files matching ENV_GLOB under ENV_ROOT.
+            No env files found. Add template files matching TEMPLATE_SUFFIX
+            under ENV_ROOT.
           </p>
         )}
     </Fragment>

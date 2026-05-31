@@ -330,14 +330,19 @@ Deno.test("getFile throws for unknown file name", async () => {
   await expect(backend.getFile(".env.missing")).rejects.toThrow();
 });
 
-Deno.test("createFile and deleteFile manage env files", async () => {
+Deno.test("template variable updates create env files; deleteFile removes them", async () => {
   const opts = await createDirs();
   const backend = createBackend(opts);
 
-  await backend.createFile("app");
+  await Deno.writeTextFile(
+    `${opts.rootFolder}/.env.app.example`,
+    file("TOKEN=example"),
+  );
+
+  await backend.updateVariable(".env.app", "TOKEN", "created-from-template");
 
   const created = await backend.getFile(".env.app");
-  expect(created.source).toEqual("env");
+  expect(created.source).toEqual("both");
   expect(created.envFilePath).not.toBeNull();
 
   let files = await backend.listFiles();
@@ -346,7 +351,12 @@ Deno.test("createFile and deleteFile manage env files", async () => {
   await backend.deleteFile(".env.app");
 
   files = await backend.listFiles();
-  expect(files.map((entry) => entry.name)).not.toContain(".env.app");
+  expect(files.map((entry) => entry.name)).toContain(".env.app");
+
+  const afterDelete = await backend.getFile(".env.app");
+  expect(afterDelete.source).toEqual("template");
+  expect(afterDelete.envFilePath).toBeNull();
+  expect(afterDelete.templateFilePath).not.toBeNull();
 });
 
 Deno.test("regenerateVariable produces different values on repeated calls", async () => {

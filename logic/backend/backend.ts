@@ -35,7 +35,6 @@ export interface Backend {
     fileName: string,
     variableName: string,
   ): Promise<void>;
-  createFile(name: string): Promise<void>;
   deleteFile(name: string): Promise<void>;
 }
 
@@ -57,7 +56,6 @@ export function createBackend(
     addVariable,
     regenerateVariable,
     deleteVariable,
-    createFile,
     deleteFile,
   };
 
@@ -125,17 +123,6 @@ export function createBackend(
     const { variables, saveFile } = await resolveVariables(fileName);
     const updatedVariables = variables.filter((v) => v.name !== variableName);
     await saveFile(updatedVariables);
-  }
-
-  async function createFile(name: string) {
-    const fileName = normalizeBackendFileName(name);
-    const path = resolve(rootFolder, fileName);
-    if (await pathExists(path)) {
-      throw new Error(`File already exists: ${fileName}`);
-    }
-
-    await Deno.mkdir(rootFolder, { recursive: true });
-    await Deno.writeTextFile(path, "", { createNew: true });
   }
 
   async function deleteFile(name: string) {
@@ -241,16 +228,4 @@ export function normalizeBackendFileName(rawName: string): string {
   const normalized = segments.join("/");
 
   return normalized;
-}
-
-async function pathExists(path: string): Promise<boolean> {
-  try {
-    const stat = await Deno.stat(path);
-    return stat.isFile;
-  } catch (error) {
-    if (error instanceof Deno.errors.NotFound) {
-      return false;
-    }
-    throw error;
-  }
 }
