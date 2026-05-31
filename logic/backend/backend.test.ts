@@ -6,31 +6,33 @@ function file(...lines: string[]): string {
 }
 
 async function createDirs(): Promise<
-  { envFilesFolder: string; envTemplatesFolder: string }
+  { rootFolder: string; envFileGlob: string; templateSuffixes: string[] }
 > {
-  const root = await Deno.makeTempDir({ prefix: "backend-test-" });
-  const envFilesFolder = `${root}/env`;
-  const envTemplatesFolder = `${root}/template`;
-  await Deno.mkdir(envFilesFolder, { recursive: true });
-  await Deno.mkdir(envTemplatesFolder, { recursive: true });
-  return { envFilesFolder, envTemplatesFolder };
+  const rootFolder = await Deno.makeTempDir({ prefix: "backend-test-" });
+  await Deno.mkdir(rootFolder, { recursive: true });
+
+  return {
+    rootFolder,
+    envFileGlob: "**/.env*",
+    templateSuffixes: [".example"],
+  };
 }
 
 Deno.test("listFiles merges env and template names", async () => {
   const opts = await createDirs();
   const backend = createBackend(opts);
 
-  await Deno.writeTextFile(`${opts.envFilesFolder}/.env.app`, "APP=true");
-  await Deno.writeTextFile(`${opts.envFilesFolder}/.env.local`, "LOCAL=1");
-  await Deno.mkdir(`${opts.envFilesFolder}/.env.dir`, { recursive: true });
-  await Deno.writeTextFile(`${opts.envFilesFolder}/README.md`, "ignore");
+  await Deno.writeTextFile(`${opts.rootFolder}/.env.app`, "APP=true");
+  await Deno.writeTextFile(`${opts.rootFolder}/.env.local`, "LOCAL=1");
+  await Deno.mkdir(`${opts.rootFolder}/.env.dir`, { recursive: true });
+  await Deno.writeTextFile(`${opts.rootFolder}/README.md`, "ignore");
 
   await Deno.writeTextFile(
-    `${opts.envTemplatesFolder}/.env.app`,
-    "# duplicate name from template",
+    `${opts.rootFolder}/.env.app.example`,
+    "# template paired with .env.app",
   );
-  await Deno.writeTextFile(`${opts.envTemplatesFolder}/.env.prod`, "PROD=1");
-  await Deno.writeTextFile(`${opts.envTemplatesFolder}/.env`, "IGNORE=1");
+  await Deno.writeTextFile(`${opts.rootFolder}/.env.prod.example`, "PROD=1");
+  await Deno.writeTextFile(`${opts.rootFolder}/.env.example`, "IGNORE=1");
 
   const files = await backend.listFiles();
   expect(files.map((f) => f.name)).toEqual([
@@ -46,7 +48,7 @@ Deno.test("listVariables merges env/template and exposes metadata", async () => 
   const backend = createBackend(opts);
 
   await Deno.writeTextFile(
-    `${opts.envFilesFolder}/.env.app`,
+    `${opts.rootFolder}/.env.app`,
     file(
       "# @description env description wins",
       "# @secret",
@@ -57,7 +59,7 @@ Deno.test("listVariables merges env/template and exposes metadata", async () => 
   );
 
   await Deno.writeTextFile(
-    `${opts.envTemplatesFolder}/.env.app`,
+    `${opts.rootFolder}/.env.app.example`,
     file(
       "# @description template description",
       "# @type string",
@@ -102,7 +104,7 @@ Deno.test("getVariable returns the variable when found", async () => {
   const opts = await createDirs();
   const backend = createBackend(opts);
 
-  await Deno.writeTextFile(`${opts.envFilesFolder}/.env.app`, "FOO=bar");
+  await Deno.writeTextFile(`${opts.rootFolder}/.env.app`, "FOO=bar");
 
   const result = await backend.getVariable(".env.app", "FOO");
   expect(result?.name).toEqual("FOO");
@@ -113,7 +115,7 @@ Deno.test("getVariable returns null for unknown variable", async () => {
   const opts = await createDirs();
   const backend = createBackend(opts);
 
-  await Deno.writeTextFile(`${opts.envFilesFolder}/.env.app`, "FOO=bar");
+  await Deno.writeTextFile(`${opts.rootFolder}/.env.app`, "FOO=bar");
 
   const result = await backend.getVariable(".env.app", "MISSING");
   expect(result).toBeNull();
@@ -124,7 +126,7 @@ Deno.test("addVariable and updateVariable lifecycle", async () => {
   const backend = createBackend(opts);
 
   await Deno.writeTextFile(
-    `${opts.envTemplatesFolder}/.env.app`,
+    `${opts.rootFolder}/.env.app.example`,
     file(
       "# @generate",
       "# @length 10",
@@ -132,8 +134,8 @@ Deno.test("addVariable and updateVariable lifecycle", async () => {
     ),
   );
 
-  // Create the env file by adding a variable (file doesn't exist yet in env folder)
-  await Deno.writeTextFile(`${opts.envFilesFolder}/.env.app`, "");
+  // Create the env file by adding a variable (file does not exist yet).
+  await Deno.writeTextFile(`${opts.rootFolder}/.env.app`, "");
 
   await backend.addVariable(".env.app", "PLAIN", "hello");
   await backend.addVariable(".env.app", "SECRET", "super-secret");
@@ -158,13 +160,13 @@ Deno.test("getFile returns correct source field", async () => {
   const opts = await createDirs();
   const backend = createBackend(opts);
 
-  await Deno.writeTextFile(`${opts.envFilesFolder}/.env.env-only`, "X=1");
+  await Deno.writeTextFile(`${opts.rootFolder}/.env.env-only`, "X=1");
   await Deno.writeTextFile(
-    `${opts.envTemplatesFolder}/.env.tmpl-only`,
+    `${opts.rootFolder}/.env.tmpl-only.example`,
     "Y=2",
   );
-  await Deno.writeTextFile(`${opts.envFilesFolder}/.env.both`, "Z=3");
-  await Deno.writeTextFile(`${opts.envTemplatesFolder}/.env.both`, "Z=0");
+  await Deno.writeTextFile(`${opts.rootFolder}/.env.both`, "Z=3");
+  await Deno.writeTextFile(`${opts.rootFolder}/.env.both.example`, "Z=0");
 
   const envOnly = await backend.getFile(".env.env-only");
   expect(envOnly.source).toEqual("env");
@@ -182,11 +184,25 @@ Deno.test("getFile returns correct source field", async () => {
   expect(both.templateFilePath).not.toBeNull();
 });
 
+Deno.test("template suffix classification wins over env glob", async () => {
+  const opts = await createDirs();
+  const backend = createBackend(opts);
+
+  // .env.app.example matches ENV_GLOB but also ends with .example suffix.
+  await Deno.writeTextFile(`${opts.rootFolder}/.env.app.example`, "A=1");
+
+  const files = await backend.listFiles();
+  expect(files).toHaveLength(1);
+  // Name is the base name with the suffix stripped.
+  expect(files[0]?.name).toEqual(".env.app");
+  expect(files[0]?.source).toEqual("template");
+});
+
 Deno.test("regenerateVariable throws when variable has no generate flag", async () => {
   const opts = await createDirs();
   const backend = createBackend(opts);
 
-  await Deno.writeTextFile(`${opts.envFilesFolder}/.env.app`, "PLAIN=value");
+  await Deno.writeTextFile(`${opts.rootFolder}/.env.app`, "PLAIN=value");
 
   await expect(
     backend.regenerateVariable(".env.app", "PLAIN"),
@@ -198,10 +214,10 @@ Deno.test("updateVariable throws for invalid number value", async () => {
   const backend = createBackend(opts);
 
   await Deno.writeTextFile(
-    `${opts.envTemplatesFolder}/.env.app`,
+    `${opts.rootFolder}/.env.app.example`,
     file("# @type number", "PORT=3000"),
   );
-  await Deno.writeTextFile(`${opts.envFilesFolder}/.env.app`, "PORT=8080");
+  await Deno.writeTextFile(`${opts.rootFolder}/.env.app`, "PORT=8080");
 
   await expect(
     backend.updateVariable(".env.app", "PORT", "not-a-number"),
@@ -213,10 +229,10 @@ Deno.test("updateVariable throws for invalid boolean value", async () => {
   const backend = createBackend(opts);
 
   await Deno.writeTextFile(
-    `${opts.envTemplatesFolder}/.env.app`,
+    `${opts.rootFolder}/.env.app.example`,
     file("# @type boolean", "FLAG=false"),
   );
-  await Deno.writeTextFile(`${opts.envFilesFolder}/.env.app`, "FLAG=true");
+  await Deno.writeTextFile(`${opts.rootFolder}/.env.app`, "FLAG=true");
 
   await expect(
     backend.updateVariable(".env.app", "FLAG", "yes"),
@@ -228,10 +244,10 @@ Deno.test("updateVariable normalises boolean casing", async () => {
   const backend = createBackend(opts);
 
   await Deno.writeTextFile(
-    `${opts.envTemplatesFolder}/.env.app`,
+    `${opts.rootFolder}/.env.app.example`,
     file("# @type boolean", "FLAG=false"),
   );
-  await Deno.writeTextFile(`${opts.envFilesFolder}/.env.app`, "FLAG=false");
+  await Deno.writeTextFile(`${opts.rootFolder}/.env.app`, "FLAG=false");
 
   await backend.updateVariable(".env.app", "FLAG", "TRUE");
 
@@ -244,10 +260,10 @@ Deno.test("updateVariable accepts valid JSON and rejects invalid JSON", async ()
   const backend = createBackend(opts);
 
   await Deno.writeTextFile(
-    `${opts.envTemplatesFolder}/.env.app`,
+    `${opts.rootFolder}/.env.app.example`,
     file("# @type json", "CONFIG={}"),
   );
-  await Deno.writeTextFile(`${opts.envFilesFolder}/.env.app`, "CONFIG={}");
+  await Deno.writeTextFile(`${opts.rootFolder}/.env.app`, "CONFIG={}");
 
   await backend.updateVariable(".env.app", "CONFIG", '{"key":"value"}');
   const result = await backend.getVariable(".env.app", "CONFIG");
@@ -263,10 +279,10 @@ Deno.test("updateVariable throws when required variable set to empty", async () 
   const backend = createBackend(opts);
 
   await Deno.writeTextFile(
-    `${opts.envTemplatesFolder}/.env.app`,
+    `${opts.rootFolder}/.env.app.example`,
     file("# @required", "API_KEY=example"),
   );
-  await Deno.writeTextFile(`${opts.envFilesFolder}/.env.app`, "API_KEY=real");
+  await Deno.writeTextFile(`${opts.rootFolder}/.env.app`, "API_KEY=real");
 
   await expect(
     backend.updateVariable(".env.app", "API_KEY", ""),
@@ -277,7 +293,7 @@ Deno.test("addVariable with no value defaults to empty string", async () => {
   const opts = await createDirs();
   const backend = createBackend(opts);
 
-  await Deno.writeTextFile(`${opts.envFilesFolder}/.env.app`, "");
+  await Deno.writeTextFile(`${opts.rootFolder}/.env.app`, "");
 
   await backend.addVariable(".env.app", "UNSET");
 
@@ -290,11 +306,11 @@ Deno.test("listVariables preserves template order, env-only vars appended", asyn
   const backend = createBackend(opts);
 
   await Deno.writeTextFile(
-    `${opts.envTemplatesFolder}/.env.app`,
+    `${opts.rootFolder}/.env.app.example`,
     file("FIRST=1", "SECOND=2", "THIRD=3"),
   );
   await Deno.writeTextFile(
-    `${opts.envFilesFolder}/.env.app`,
+    `${opts.rootFolder}/.env.app`,
     file("SECOND=b", "FIRST=a", "ENV_ONLY=x"),
   );
 
@@ -325,12 +341,12 @@ Deno.test("createFile and deleteFile manage env files", async () => {
   expect(created.envFilePath).not.toBeNull();
 
   let files = await backend.listFiles();
-  expect(files.map((file) => file.name)).toContain(".env.app");
+  expect(files.map((entry) => entry.name)).toContain(".env.app");
 
   await backend.deleteFile(".env.app");
 
   files = await backend.listFiles();
-  expect(files.map((file) => file.name)).not.toContain(".env.app");
+  expect(files.map((entry) => entry.name)).not.toContain(".env.app");
 });
 
 Deno.test("regenerateVariable produces different values on repeated calls", async () => {
@@ -338,10 +354,10 @@ Deno.test("regenerateVariable produces different values on repeated calls", asyn
   const backend = createBackend(opts);
 
   await Deno.writeTextFile(
-    `${opts.envTemplatesFolder}/.env.app`,
+    `${opts.rootFolder}/.env.app.example`,
     file("# @generate", "# @length 32", "TOKEN=example"),
   );
-  await Deno.writeTextFile(`${opts.envFilesFolder}/.env.app`, "TOKEN=old");
+  await Deno.writeTextFile(`${opts.rootFolder}/.env.app`, "TOKEN=old");
 
   await backend.regenerateVariable(".env.app", "TOKEN");
   const first = (await backend.getVariable(".env.app", "TOKEN"))?.value;

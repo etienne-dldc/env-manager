@@ -3,13 +3,15 @@ export const DEFAULT_CONFIG_JSON_PATH = "/app/config.json";
 export const DEFAULT_DOCKER_API_VERSION = "v1.43";
 export const DEFAULT_DOCKER_SOCKET = "/var/run/docker.sock";
 export const DEFAULT_DATA_ROOT = "/data";
-export const DEFAULT_ENV_FOLDER = "/data/env";
-export const DEFAULT_ENV_TEMPLATE_FOLDER = "/data/env-template";
+export const DEFAULT_ENV_ROOT = DEFAULT_DATA_ROOT;
+export const DEFAULT_ENV_GLOB = "**/.env*";
+export const DEFAULT_TEMPLATE_SUFFIXES = ".example";
 
 export type AppEnv = {
   port: number;
-  envFolder: string;
-  envTemplateFolder: string;
+  envRoot: string;
+  envFileGlob: string;
+  templateSuffixes: string[];
   otel: {
     denoEnabled: boolean;
     denoConsole: string | null;
@@ -57,9 +59,13 @@ function nullable(raw: string | undefined): string | null {
 export function readEnv(): AppEnv {
   return {
     port: parsePort(Deno.env.get("PORT")),
-    envFolder: Deno.env.get("ENV_FOLDER") || DEFAULT_ENV_FOLDER,
-    envTemplateFolder: Deno.env.get("ENV_TEMPLATE_FOLDER") ||
-      DEFAULT_ENV_TEMPLATE_FOLDER,
+    envRoot: Deno.env.get("ENV_ROOT") || DEFAULT_ENV_ROOT,
+    envFileGlob: Deno.env.get("ENV_GLOB") || DEFAULT_ENV_GLOB,
+    templateSuffixes:
+      (Deno.env.get("TEMPLATE_SUFFIX") || DEFAULT_TEMPLATE_SUFFIXES)
+        .split(",")
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0),
     otel: {
       denoEnabled: parseFlag(Deno.env.get("OTEL_DENO")),
       denoConsole: nullable(Deno.env.get("OTEL_DENO_CONSOLE")),
@@ -81,8 +87,9 @@ export const appEnv = readEnv();
 export function logEnvConfiguration(env: AppEnv): void {
   const loggable = {
     PORT: env.port,
-    ENV_FOLDER: env.envFolder,
-    ENV_TEMPLATE_FOLDER: env.envTemplateFolder,
+    ENV_ROOT: env.envRoot,
+    ENV_GLOB: env.envFileGlob,
+    TEMPLATE_SUFFIX: env.templateSuffixes.join(","),
     OTEL_DENO: env.otel.denoEnabled,
     OTEL_DENO_CONSOLE: env.otel.denoConsole,
     OTEL_EXPORTER_OTLP_ENDPOINT: env.otel.exporterOtlpEndpoint,

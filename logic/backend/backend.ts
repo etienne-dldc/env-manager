@@ -7,7 +7,7 @@ import { saveFileInternal } from "./saveFileInternal.ts";
 import type { BackendFile, BackendFileVariable } from "./types.ts";
 import { updateVariableInternal } from "./updateVariableInternal.ts";
 
-const ENV_FILE_NAME_RE = /^\.env\.[^/]+$/;
+const ENV_FILE_BASE_NAME_RE = /^\.env(?:\.[^/]+)?$/;
 
 export interface Backend {
   listFiles(): Promise<BackendFile[]>;
@@ -40,12 +40,13 @@ export interface Backend {
 }
 
 export interface BackendOptions {
-  envFilesFolder: string;
-  envTemplatesFolder: string;
+  rootFolder: string;
+  envFileGlob: string;
+  templateSuffixes: string[];
 }
 
 export function createBackend(
-  { envFilesFolder, envTemplatesFolder }: BackendOptions,
+  { rootFolder, envFileGlob, templateSuffixes }: BackendOptions,
 ): Backend {
   return {
     listFiles,
@@ -128,18 +129,18 @@ export function createBackend(
 
   async function createFile(name: string) {
     const fileName = normalizeBackendFileName(name);
-    const path = resolve(envFilesFolder, fileName);
+    const path = resolve(rootFolder, fileName);
     if (await pathExists(path)) {
       throw new Error(`File already exists: ${fileName}`);
     }
 
-    await Deno.mkdir(envFilesFolder, { recursive: true });
+    await Deno.mkdir(rootFolder, { recursive: true });
     await Deno.writeTextFile(path, "", { createNew: true });
   }
 
   async function deleteFile(name: string) {
     const fileName = normalizeBackendFileName(name);
-    const path = resolve(envFilesFolder, fileName);
+    const path = resolve(rootFolder, fileName);
 
     try {
       await Deno.remove(path);
@@ -152,7 +153,11 @@ export function createBackend(
   }
 
   async function resolveFiles() {
-    const files = await listFilesInternal(envFilesFolder, envTemplatesFolder);
+    const files = await listFilesInternal(
+      rootFolder,
+      envFileGlob,
+      templateSuffixes,
+    );
     return { files };
   }
 
@@ -170,7 +175,7 @@ export function createBackend(
     const { merged, template } = await listVariablesInternal(file);
     const saveFile = (updatedVariables: BackendFileVariable[]) => {
       return saveFileInternal(
-        envFilesFolder,
+        rootFolder,
         file,
         updatedVariables,
         template,
@@ -206,12 +211,34 @@ export function normalizeBackendFileName(rawName: string): string {
     throw new Error("Env file name is required");
   }
 
-  const normalized = trimmed.startsWith(".env.") ? trimmed : `.env.${trimmed}`;
-  if (!ENV_FILE_NAME_RE.test(normalized)) {
+  const normalizedSlashes = trimmed.replaceAll("\\", "/");
+  const segments = normalizedSlashes.split("/");
+
+  if (
+    segments.some((segment) => !segment || segment === "." || segment === "..")
+  ) {
     throw new Error(
-      `Invalid env file name ${JSON.stringify(rawName)}. Expected .env.<name>`,
+      `Invalid env file name ${
+        JSON.stringify(rawName)
+      }. Relative parent/current segments are not allowed`,
     );
   }
+
+  const baseName = segments.at(-1) ?? "";
+  const normalizedBaseName = baseName === ".env" || baseName.startsWith(".env.")
+    ? baseName
+    : `.env.${baseName}`;
+
+  if (!ENV_FILE_BASE_NAME_RE.test(normalizedBaseName)) {
+    throw new Error(
+      `Invalid env file name ${
+        JSON.stringify(rawName)
+      }. Expected .env or .env.<name>`,
+    );
+  }
+
+  segments[segments.length - 1] = normalizedBaseName;
+  const normalized = segments.join("/");
 
   return normalized;
 }

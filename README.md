@@ -11,10 +11,34 @@ files.
 
 ## Template
 
-You can provide a template folder. When provided, the app will use this template
-to know which variables are expected and populate the UI accordingly. Both the
-template and the env files use comments to store metadata about each variable,
+Templates are discovered under a shared root folder alongside env files.
+Template files provide expected variables and metadata for matching env files.
+Both template and env files use comments to store metadata about each variable,
 see the "Env file format" section below.
+
+Default configuration:
+
+- `ENV_ROOT=/data`
+- `ENV_GLOB=**/.env*`
+- `TEMPLATE_SUFFIX=.example`
+
+`TEMPLATE_SUFFIX` accepts a comma-separated list of suffixes (e.g.
+`TEMPLATE_SUFFIX=.example,.tmpl`). Longer suffixes take precedence when a
+filename could match multiple entries.
+
+Classification rules:
+
+- If a file's name ends with any value in `TEMPLATE_SUFFIX`, it is a template.
+  Template classification always wins, even if the file also matches `ENV_GLOB`.
+- Otherwise, if a file matches `ENV_GLOB`, it is an editable env file.
+
+Pairing rule:
+
+- Pairing is exact and deterministic: a template's corresponding env file name
+  is the template filename with the matched suffix stripped.
+- Example: `.env.app.example` strips `.example` → pairs with `.env.app`.
+- If the corresponding env file does not exist yet, editing a variable in the
+  template will create it automatically.
 
 ## Env file format
 

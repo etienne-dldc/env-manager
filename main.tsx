@@ -28,8 +28,9 @@ console.log(
 );
 
 const backend = createBackend({
-  envFilesFolder: appEnv.envFolder,
-  envTemplatesFolder: appEnv.envTemplateFolder,
+  rootFolder: appEnv.envRoot,
+  envFileGlob: appEnv.envFileGlob,
+  templateSuffixes: appEnv.templateSuffixes,
 });
 
 const app = new Hono();

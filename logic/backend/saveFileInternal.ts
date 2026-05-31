@@ -7,7 +7,7 @@ import {
 import type { BackendFile, BackendFileVariable } from "./types.ts";
 
 export async function saveFileInternal(
-  envFilesFolder: string,
+  rootFolder: string,
   file: BackendFile,
   variables: BackendFileVariable[],
   template: EnvVariable[],
@@ -16,7 +16,7 @@ export async function saveFileInternal(
   const content = serializeEnvFile(variablesWithoutMetadata);
   const path = file.envFilePath
     ? file.envFilePath
-    : resolve(envFilesFolder, file.name);
+    : resolve(rootFolder, file.name);
 
   await Deno.writeTextFile(path, content);
 }
