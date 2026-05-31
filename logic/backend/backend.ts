@@ -35,7 +35,6 @@ export interface Backend {
     fileName: string,
     variableName: string,
   ): Promise<void>;
-  createFile(name: string): Promise<void>;
   deleteFile(name: string): Promise<void>;
 }
 
@@ -56,7 +55,6 @@ export function createBackend(
     addVariable,
     regenerateVariable,
     deleteVariable,
-    createFile,
     deleteFile,
   };
 
@@ -214,16 +212,4 @@ export function normalizeBackendFileName(rawName: string): string {
   }
 
   return normalized;
-}
-
-async function pathExists(path: string): Promise<boolean> {
-  try {
-    const stat = await Deno.stat(path);
-    return stat.isFile;
-  } catch (error) {
-    if (error instanceof Deno.errors.NotFound) {
-      return false;
-    }
-    throw error;
-  }
 }

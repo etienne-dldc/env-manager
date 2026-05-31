@@ -9,10 +9,7 @@ import console from "node:console";
 import { VariableValueDisplay } from "./components/EnvVariableItem/VariableValueDisplay.tsx";
 import { VariableValueEdit } from "./components/EnvVariableItem/VariableValueEdit.tsx";
 import denoJson from "./deno.json" with { type: "json" };
-import {
-  createBackend,
-  normalizeBackendFileName,
-} from "./logic/backend/backend.ts";
+import { createBackend } from "./logic/backend/backend.ts";
 import { appEnv, logEnvConfiguration } from "./logic/env.ts";
 import { FLASH_COOKIE_NAME, parseFlash } from "./logic/flash.ts";
 import { redirect } from "./logic/redirectTo.ts";
@@ -121,32 +118,6 @@ app.get("/", async (c) => {
     () => c.html(<HomePage flash={c.get("flash")} envFiles={envFiles} />),
   );
 });
-
-app.post(
-  "/env",
-  sValidator(
-    "form",
-    v.object({
-      name: v.pipe(v.string(), v.trim(), v.nonEmpty("Name is required")),
-    }),
-  ),
-  async (c) => {
-    const { name: rawName } = c.req.valid("form");
-
-    try {
-      const name = normalizeBackendFileName(rawName);
-      await backend.createFile(name);
-      setFlash(c, "success", `Created ${name}`);
-      return redirect(c, "/");
-    } catch (error) {
-      const message = error instanceof Error
-        ? error.message
-        : "Failed to create env file";
-      setFlash(c, "error", message);
-      return redirect(c, "/");
-    }
-  },
-);
 
 app.post(
   "/env/:name/variable",
