@@ -57,8 +57,8 @@ DB_PASSWORD=supersecret
   input for this type.
 - `boolean`: A variable that should be a boolean. The UI will provide a toggle
   switch for this type and will set `true` or `false` as value.
-- `json`: A variable that should contain valid JSON. The UI will provide a
-  text input for this type and the value will be validated as JSON.
+- `json`: A variable that should contain valid JSON. The UI will provide a text
+  input for this type and the value will be validated as JSON.
 
 ## OpenTelemetry
 
