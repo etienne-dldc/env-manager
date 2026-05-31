@@ -17,7 +17,7 @@
     "jsr:@std/path@^1.1.5": "1.1.5",
     "jsr:@valibot/valibot@^1.4.1": "1.4.1",
     "npm:@opentelemetry/api@^1.9.1": "1.9.1",
-    "npm:lucide-static@^1.16.0": "1.16.0",
+    "npm:lucide-static@^1.17.0": "1.17.0",
     "npm:type-fest@^5.6.0": "5.6.0"
   },
   "jsr": {
@@ -77,8 +77,8 @@
     "@opentelemetry/api@1.9.1": {
       "integrity": "sha512-gLyJlPHPZYdAk1JENA9LeHejZe1Ti77/pTeFm/nMXmQH/HFZlcS/O2XJB+L8fkbrNSqhdtlvjBVjxwUYanNH5Q=="
     },
-    "lucide-static@1.16.0": {
-      "integrity": "sha512-/EH96rDLRLNKaxuhqHHbmUPx3+qHS/kQRzI1ZGZqnxmh6ljX9yX0xC2UZlQSfBE/n84eNIaxKsv9P8sMiOdCww=="
+    "lucide-static@1.17.0": {
+      "integrity": "sha512-VORJmPqi4DZ5lf4/n2qqcIz1nTKGFReS83DJINcK5nXY7z+4P3G6CW/7SXpzlGllEI0vHKFH24eSM+aMFaK5zw=="
     },
     "tagged-tag@1.0.0": {
       "integrity": "sha512-yEFYrVhod+hdNyx7g5Bnkkb0G6si8HJurOoOEgC8B/O0uXLHlaey/65KRv6cuWBNhBgHKAROVpc7QyYqE5gFng=="
@@ -99,7 +99,7 @@
       "jsr:@std/path@^1.1.5",
       "jsr:@valibot/valibot@^1.4.1",
       "npm:@opentelemetry/api@^1.9.1",
-      "npm:lucide-static@^1.16.0"
+      "npm:lucide-static@^1.17.0"
     ]
   }
 }
