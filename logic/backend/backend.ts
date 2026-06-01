@@ -7,7 +7,7 @@ import { saveFileInternal } from "./saveFileInternal.ts";
 import type { BackendFile, BackendFileVariable } from "./types.ts";
 import { updateVariableInternal } from "./updateVariableInternal.ts";
 
-const ENV_FILE_NAME_RE = /^\.env\.[^/]+$/;
+const ENV_FILE_NAME_RE = /^(([^/]+)\/)*.env(\.[^/]+)?$/;
 
 export interface Backend {
   listFiles(): Promise<BackendFile[]>;
@@ -41,10 +41,13 @@ export interface Backend {
 export interface BackendOptions {
   envFilesFolder: string;
   envTemplatesFolder: string;
+  globPattern: string;
+  templateSuffixes: string[];
 }
 
 export function createBackend(
-  { envFilesFolder, envTemplatesFolder }: BackendOptions,
+  { envFilesFolder, envTemplatesFolder, globPattern, templateSuffixes }:
+    BackendOptions,
 ): Backend {
   return {
     listFiles,
@@ -124,16 +127,24 @@ export function createBackend(
     await saveFile(updatedVariables);
   }
 
-  async function createFile(name: string) {
-    const fileName = normalizeBackendFileName(name);
-    const path = resolve(envFilesFolder, fileName);
-    if (await pathExists(path)) {
-      throw new Error(`File already exists: ${fileName}`);
-    }
+  // async function createFile(name: string) {
+  //   const fileName = normalizeBackendFileName(name);
+  //   const path = resolve(envFilesFolder, fileName);
 
-    await Deno.mkdir(envFilesFolder, { recursive: true });
-    await Deno.writeTextFile(path, "", { createNew: true });
-  }
+  //   // Create parent directories
+  //   const parentDir = path.substring(0, path.lastIndexOf("/"));
+  //   await Deno.mkdir(parentDir, { recursive: true });
+
+  //   // Create file with createNew to avoid overwriting existing files
+  //   try {
+  //     await Deno.writeTextFile(path, "", { createNew: true });
+  //   } catch (error) {
+  //     if (error instanceof Deno.errors.AlreadyExists) {
+  //       throw new Error(`File already exists: ${fileName}`);
+  //     }
+  //     throw error;
+  //   }
+  // }
 
   async function deleteFile(name: string) {
     const fileName = normalizeBackendFileName(name);
@@ -150,7 +161,12 @@ export function createBackend(
   }
 
   async function resolveFiles() {
-    const files = await listFilesInternal(envFilesFolder, envTemplatesFolder);
+    const files = await listFilesInternal(
+      envFilesFolder,
+      envTemplatesFolder,
+      globPattern,
+      templateSuffixes,
+    );
     return { files };
   }
 
@@ -168,7 +184,6 @@ export function createBackend(
     const { merged, template } = await listVariablesInternal(file);
     const saveFile = (updatedVariables: BackendFileVariable[]) => {
       return saveFileInternal(
-        envFilesFolder,
         file,
         updatedVariables,
         template,
@@ -204,10 +219,42 @@ export function normalizeBackendFileName(rawName: string): string {
     throw new Error("Env file name is required");
   }
 
-  const normalized = trimmed.startsWith(".env.") ? trimmed : `.env.${trimmed}`;
+  // Validate path safety - no .. or leading/trailing slashes
+  if (
+    trimmed.includes("..") || trimmed.startsWith("/") || trimmed.endsWith("/")
+  ) {
+    throw new Error(
+      `Invalid env file path ${
+        JSON.stringify(rawName)
+      }. Must not contain '..', start with '/', or end with '/'`,
+    );
+  }
+
+  // If the path already contains .env, use as-is
+  if (trimmed.includes(".env")) {
+    if (!ENV_FILE_NAME_RE.test(trimmed)) {
+      throw new Error(
+        `Invalid env file path ${
+          JSON.stringify(rawName)
+        }. Expected .env or .env.<name>`,
+      );
+    }
+    return trimmed;
+  }
+
+  // Otherwise, append .env prefix to the last component
+  const parts = trimmed.split("/");
+  const lastPart = parts[parts.length - 1];
+  parts[parts.length - 1] = lastPart.startsWith(".env.")
+    ? lastPart
+    : `.env.${lastPart}`;
+  const normalized = parts.join("/");
+
   if (!ENV_FILE_NAME_RE.test(normalized)) {
     throw new Error(
-      `Invalid env file name ${JSON.stringify(rawName)}. Expected .env.<name>`,
+      `Invalid env file path ${
+        JSON.stringify(rawName)
+      }. Expected .env or .env.<name>`,
     );
   }
 

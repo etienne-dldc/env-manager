@@ -5,11 +5,16 @@ export const DEFAULT_DOCKER_SOCKET = "/var/run/docker.sock";
 export const DEFAULT_DATA_ROOT = "/data";
 export const DEFAULT_ENV_FOLDER = "/data/env";
 export const DEFAULT_ENV_TEMPLATE_FOLDER = "/data/env-template";
+export const DEFAULT_GLOB_PATTERN = "**/.env*";
+export const DEFAULT_MAX_NESTING_DEPTH = 20;
+export const DEFAULT_TEMPLATE_SUFFIXES = [".example", ".template", ".tmpl"];
 
 export type AppEnv = {
   port: number;
   envFolder: string;
   envTemplateFolder: string;
+  globPattern: string;
+  templateSuffixes: string[];
   otel: {
     denoEnabled: boolean;
     denoConsole: string | null;
@@ -49,6 +54,17 @@ function parsePort(raw: string | undefined): number {
   return parsed;
 }
 
+function parseStringArray(
+  raw: string | undefined,
+  defaultValue: string[],
+): string[] {
+  if (!raw) {
+    return defaultValue;
+  }
+
+  return raw.split(",").map((s) => s.trim()).filter((s) => s.length > 0);
+}
+
 function nullable(raw: string | undefined): string | null {
   const trimmed = raw?.trim();
   return trimmed && trimmed.length > 0 ? trimmed : null;
@@ -60,6 +76,11 @@ export function readEnv(): AppEnv {
     envFolder: Deno.env.get("ENV_FOLDER") || DEFAULT_ENV_FOLDER,
     envTemplateFolder: Deno.env.get("ENV_TEMPLATE_FOLDER") ||
       DEFAULT_ENV_TEMPLATE_FOLDER,
+    globPattern: Deno.env.get("ENV_GLOB_PATTERN") || DEFAULT_GLOB_PATTERN,
+    templateSuffixes: parseStringArray(
+      Deno.env.get("TEMPLATE_SUFFIXES"),
+      DEFAULT_TEMPLATE_SUFFIXES,
+    ),
     otel: {
       denoEnabled: parseFlag(Deno.env.get("OTEL_DENO")),
       denoConsole: nullable(Deno.env.get("OTEL_DENO_CONSOLE")),
@@ -83,6 +104,7 @@ export function logEnvConfiguration(env: AppEnv): void {
     PORT: env.port,
     ENV_FOLDER: env.envFolder,
     ENV_TEMPLATE_FOLDER: env.envTemplateFolder,
+    ENV_GLOB_PATTERN: env.globPattern,
     OTEL_DENO: env.otel.denoEnabled,
     OTEL_DENO_CONSOLE: env.otel.denoConsole,
     OTEL_EXPORTER_OTLP_ENDPOINT: env.otel.exporterOtlpEndpoint,

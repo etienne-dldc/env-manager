@@ -4,19 +4,21 @@
 
 ## How it works
 
-This project create a UI for a list of dotenv files. It read the files, parse
-the metadata comments, and display the variables in a user-friendly way. The
-user can edit the variables, and the app will write the changes back to the
-files.
+This project create a UI for managing env files. It takes your infra folder as
+base with some .env "templates" (e.g. `.env.app.example`) and let you
+create/edit corresponding .env files (e.g. `.env.app`) in a specified env files
+folder. When reading the template files, the app parse the metadata comments to
+extract information about each variable, such as description, type, and options.
+This allows the UI to provide a better experience when editing variables.
 
-## Template
+## Templates files
 
-You can provide a template folder. When provided, the app will use this template
-to know which variables are expected and populate the UI accordingly. Both the
-template and the env files use comments to store metadata about each variable,
-see the "Env file format" section below.
+The app will only let you edit files that have a corresponding template file.
+For example, if you have a template file named `.env.app.example`, you will be
+able to edit the corresponding `.env.app` file. If the `.env.app` file does not
+exist, it will be created when you first edit one of its variables.
 
-## Env file format
+## Templates Env file format
 
 This project use comments in env files to store metadata about each variable,
 such as description, type, and options. This allows the UI to provide a better
@@ -28,11 +30,15 @@ Example of an env file with metadata comments:
 # @description The port the app listens on
 # @type number
 PORT=3000
+
 # @description Database secret
 # @type string
 # @secret
 DB_PASSWORD=supersecret
 ```
+
+_Note_: In template files, the variable values are used as placeholders and are
+not important.
 
 ## Available metadata tags:
 

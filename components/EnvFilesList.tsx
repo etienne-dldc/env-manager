@@ -44,7 +44,7 @@ export const EnvFilesList: FC<EnvFilesListProps> = (
                   href={`/env/${encodeURIComponent(file.name)}`}
                 >
                   <Stack flexDirection="row" alignItems="center" gap={2}>
-                    {file.source === "template"
+                    {file.fileExists === false
                       ? (
                         <Icon
                           icon={AlertTriangle}

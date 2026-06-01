@@ -1,4 +1,4 @@
-import { resolve } from "@std/path";
+import { dirname } from "@std/path";
 import {
   type EnvMetadata,
   type EnvVariable,
@@ -7,18 +7,15 @@ import {
 import type { BackendFile, BackendFileVariable } from "./types.ts";
 
 export async function saveFileInternal(
-  envFilesFolder: string,
   file: BackendFile,
   variables: BackendFileVariable[],
   template: EnvVariable[],
 ): Promise<void> {
   const variablesWithoutMetadata = removeTemplateMetadata(variables, template);
   const content = serializeEnvFile(variablesWithoutMetadata);
-  const path = file.envFilePath
-    ? file.envFilePath
-    : resolve(envFilesFolder, file.name);
-
-  await Deno.writeTextFile(path, content);
+  // Create parent directories for nested paths
+  await Deno.mkdir(dirname(file.envFilePath), { recursive: true });
+  await Deno.writeTextFile(file.envFilePath, content);
 }
 
 function removeTemplateMetadata(

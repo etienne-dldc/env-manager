@@ -1,19 +1,24 @@
 import { expect } from "@std/expect";
-import { createBackend } from "./backend.ts";
+import { type BackendOptions, createBackend } from "./backend.ts";
 
 function file(...lines: string[]): string {
   return lines.join("\n");
 }
 
 async function createDirs(): Promise<
-  { envFilesFolder: string; envTemplatesFolder: string }
+  BackendOptions
 > {
   const root = await Deno.makeTempDir({ prefix: "backend-test-" });
   const envFilesFolder = `${root}/env`;
   const envTemplatesFolder = `${root}/template`;
   await Deno.mkdir(envFilesFolder, { recursive: true });
   await Deno.mkdir(envTemplatesFolder, { recursive: true });
-  return { envFilesFolder, envTemplatesFolder };
+  return {
+    envFilesFolder,
+    envTemplatesFolder,
+    globPattern: "**/.env*",
+    templateSuffixes: [".example", ".template"],
+  };
 }
 
 Deno.test("listFiles merges env and template names", async () => {
@@ -167,19 +172,19 @@ Deno.test("getFile returns correct source field", async () => {
   await Deno.writeTextFile(`${opts.envTemplatesFolder}/.env.both`, "Z=0");
 
   const envOnly = await backend.getFile(".env.env-only");
-  expect(envOnly.source).toEqual("env");
+  expect(envOnly.fileExists).toEqual(true);
   expect(envOnly.envFilePath).not.toBeNull();
-  expect(envOnly.templateFilePath).toBeNull();
+  expect(envOnly.templatePath).toBeNull();
 
   const tmplOnly = await backend.getFile(".env.tmpl-only");
-  expect(tmplOnly.source).toEqual("template");
-  expect(tmplOnly.templateFilePath).not.toBeNull();
+  expect(tmplOnly.fileExists).toEqual(false);
+  expect(tmplOnly.templatePath).not.toBeNull();
   expect(tmplOnly.envFilePath).toBeNull();
 
   const both = await backend.getFile(".env.both");
-  expect(both.source).toEqual("both");
+  expect(both.fileExists).toEqual(true);
   expect(both.envFilePath).not.toBeNull();
-  expect(both.templateFilePath).not.toBeNull();
+  expect(both.templatePath).not.toBeNull();
 });
 
 Deno.test("regenerateVariable throws when variable has no generate flag", async () => {
@@ -319,14 +324,14 @@ Deno.test("template variable updates create env files; deleteFile removes them",
   const backend = createBackend(opts);
 
   await Deno.writeTextFile(
-    `${opts.rootFolder}/.env.app.example`,
+    `${opts.envTemplatesFolder}/.env.app`,
     file("TOKEN=example"),
   );
 
   await backend.updateVariable(".env.app", "TOKEN", "created-from-template");
 
   const created = await backend.getFile(".env.app");
-  expect(created.source).toEqual("both");
+  expect(created.fileExists).toEqual(true);
   expect(created.envFilePath).not.toBeNull();
 
   let files = await backend.listFiles();

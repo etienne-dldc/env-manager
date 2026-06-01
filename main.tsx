@@ -27,6 +27,8 @@ console.log(
 const backend = createBackend({
   envFilesFolder: appEnv.envFolder,
   envTemplatesFolder: appEnv.envTemplateFolder,
+  globPattern: appEnv.globPattern,
+  templateSuffixes: appEnv.templateSuffixes,
 });
 
 const app = new Hono();
@@ -171,11 +173,15 @@ app.get("/env/:name", async (c) => {
   const name = decodeURIComponent(rawName);
   const file = await backend.getFile(name);
   const variables = await backend.listVariables(name);
-  const envFile = { name: file.name, variables };
   return renderPage(
     c,
     () =>
-      c.html(<EnvFileDetailsPage envFile={envFile} flash={c.get("flash")} />),
+      c.html(
+        <EnvFileDetailsPage
+          envFile={{ name: file.name, variables }}
+          flash={c.get("flash")}
+        />,
+      ),
   );
 });
 

@@ -8,7 +8,7 @@
     "deps:update": "deno outdated --update --latest --interactive",
     "check": "deno fmt --check . && deno lint . && deno check .",
     "start": "deno run --allow-net --allow-env --allow-read=/app,/data --allow-write=/data --allow-run=curl --no-prompt main.tsx",
-    "dev": "ENV_FOLDER=./.data/env ENV_TEMPLATE_FOLDER=./.data/env-template deno run --allow-net --allow-env --allow-read=. --allow-write=./.data --allow-run=curl --no-prompt --watch main.tsx",
+    "dev": "ENV_FOLDER=./.data/env ENV_TEMPLATE_FOLDER=./.data/templates deno run --allow-net --allow-env --allow-read=. --allow-write=./.data --allow-run=curl --no-prompt --watch main.tsx",
     "test:run": "deno test --allow-all"
   },
   "imports": {
@@ -17,6 +17,7 @@
     "@hono/standard-validator": "jsr:@hono/standard-validator@^0.2.2",
     "@opentelemetry/api": "npm:@opentelemetry/api@^1.9.1",
     "@std/expect": "jsr:@std/expect@^1.0.19",
+    "@std/fs": "jsr:@std/fs@^1.0.24",
     "@std/path": "jsr:@std/path@^1.1.5",
     "@valibot/valibot": "jsr:@valibot/valibot@^1.4.1",
     "hono": "jsr:@hono/hono@^4.12.23",

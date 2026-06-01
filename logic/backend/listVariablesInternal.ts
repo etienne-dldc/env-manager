@@ -5,11 +5,11 @@ export async function listVariablesInternal(
   file: BackendFile,
 ): Promise<{ merged: BackendFileVariable[]; template: EnvVariable[] }> {
   const [envRaw, templateRaw] = await Promise.all([
-    file.envFilePath ? Deno.readTextFile(file.envFilePath) : null,
-    file.templateFilePath ? Deno.readTextFile(file.templateFilePath) : null,
+    file.fileExists ? Deno.readTextFile(file.envFilePath) : null,
+    Deno.readTextFile(file.templatePath),
   ]);
 
-  const templateVariables = templateRaw ? parseEnvFile(templateRaw) : [];
+  const templateVariables = parseEnvFile(templateRaw);
 
   return {
     merged: mergeVariableMaps(
