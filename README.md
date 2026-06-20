@@ -88,8 +88,8 @@ For Docker/Swarm deployments, set these variables in the service environment.
 
 ## CLI
 
-This package is also published on JSR as a command line app. Run it locally
-with Deno and pass the paths you want to serve:
+This package is also published on JSR as a command line app. Run it locally with
+Deno and pass the paths you want to serve:
 
 ```bash
 deno run -A jsr:@dldc/env-manager -- \
