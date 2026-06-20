@@ -56,6 +56,9 @@ export function createBackend(
   const envFilesFolder = resolve(envFilesFolderBase);
   const envTemplatesFolder = resolve(envTemplatesFolderBase);
 
+  console.info(`[backend] envFilesFolder: ${envFilesFolder}`);
+  console.info(`[backend] envTemplatesFolder: ${envTemplatesFolder}`);
+
   return {
     listFiles,
     getFile,
