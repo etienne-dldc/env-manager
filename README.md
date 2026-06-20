@@ -85,3 +85,33 @@ Useful environment variables:
   are exported.
 
 For Docker/Swarm deployments, set these variables in the service environment.
+
+## CLI
+
+This package is also published on JSR as a command line app. Run it locally
+with Deno and pass the paths you want to serve:
+
+```bash
+deno run -A jsr:@dldc/env-manager -- \
+  --env-folder ./data/env \
+  --env-template-folder ./data/env-template \
+  --port 3000
+```
+
+You can also point it at a JSON config file:
+
+```json
+{
+  "port": 3000,
+  "envFolder": "./data/env",
+  "envTemplateFolder": "./data/env-template",
+  "globPattern": "**/.env*",
+  "templateSuffixes": [".example", ".template", ".tmpl"]
+}
+```
+
+Then run:
+
+```bash
+deno run -A jsr:@dldc/env-manager -- --config ./env-manager.json
+```
