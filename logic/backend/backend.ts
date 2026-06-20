@@ -46,9 +46,16 @@ export interface BackendOptions {
 }
 
 export function createBackend(
-  { envFilesFolder, envTemplatesFolder, globPattern, templateSuffixes }:
-    BackendOptions,
+  {
+    envFilesFolder: envFilesFolderBase,
+    envTemplatesFolder: envTemplatesFolderBase,
+    globPattern,
+    templateSuffixes,
+  }: BackendOptions,
 ): Backend {
+  const envFilesFolder = resolve(envFilesFolderBase);
+  const envTemplatesFolder = resolve(envTemplatesFolderBase);
+
   return {
     listFiles,
     getFile,
@@ -126,25 +133,6 @@ export function createBackend(
     const updatedVariables = variables.filter((v) => v.name !== variableName);
     await saveFile(updatedVariables);
   }
-
-  // async function createFile(name: string) {
-  //   const fileName = normalizeBackendFileName(name);
-  //   const path = resolve(envFilesFolder, fileName);
-
-  //   // Create parent directories
-  //   const parentDir = path.substring(0, path.lastIndexOf("/"));
-  //   await Deno.mkdir(parentDir, { recursive: true });
-
-  //   // Create file with createNew to avoid overwriting existing files
-  //   try {
-  //     await Deno.writeTextFile(path, "", { createNew: true });
-  //   } catch (error) {
-  //     if (error instanceof Deno.errors.AlreadyExists) {
-  //       throw new Error(`File already exists: ${fileName}`);
-  //     }
-  //     throw error;
-  //   }
-  // }
 
   async function deleteFile(name: string) {
     const fileName = normalizeBackendFileName(name);

@@ -15,9 +15,6 @@ const config = mergeConfig(
 
 console.log(`Starting Env Manager v${denoJson.version}`);
 logAppConfig(config);
-console.log(
-  `OpenTelemetry ${config.otelDenoEnabled ? "enabled" : "disabled"}`,
-);
 
 const app = createServer(config);
 
