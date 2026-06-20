@@ -1,3 +1,5 @@
+import type { Context } from "hono";
+
 export type FlashType = "success" | "error";
 
 export type FlashValue = {
@@ -9,12 +11,6 @@ export type FlashValue = {
 export type Flash = FlashValue | null;
 
 export const FLASH_COOKIE_NAME = "flash";
-
-declare module "hono" {
-  interface ContextVariableMap {
-    flash: FlashValue;
-  }
-}
 
 export function serializeFlash(flash: FlashValue): string {
   return JSON.stringify({ type: flash.type, message: flash.message });
@@ -36,4 +32,17 @@ export function parseFlash(value: string | undefined): FlashValue | null {
     // Ignore malformed cookies
   }
   return null;
+}
+
+export function getFlash(c: Context): Flash {
+  const value = c.get("flash");
+  return value as Flash;
+}
+
+export function setFlash(
+  c: Context,
+  type: "success" | "error",
+  message: string,
+) {
+  c.set("flash", { type, message });
 }

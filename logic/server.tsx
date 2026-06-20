@@ -14,7 +14,7 @@ import { HomePage } from "../views/HomePage.tsx";
 import { NotFoundPage } from "../views/NotFoundPage.tsx";
 import { createBackend } from "./backend/backend.ts";
 import type { AppConfig } from "./config/type.ts";
-import { FLASH_COOKIE_NAME, parseFlash } from "./flash.ts";
+import { FLASH_COOKIE_NAME, getFlash, parseFlash, setFlash } from "./flash.ts";
 import { redirect } from "./redirectTo.ts";
 
 export function createServer(config: AppConfig) {
@@ -31,14 +31,10 @@ export function createServer(config: AppConfig) {
     const flashCookie = getCookie(c, FLASH_COOKIE_NAME);
     const flash = parseFlash(flashCookie);
     if (flash) {
-      c.set("flash", flash);
+      setFlash(c, flash.type, flash.message);
     }
     await next();
   });
-
-  function setFlash(c: Context, type: "success" | "error", message: string) {
-    c.set("flash", { type, message });
-  }
 
   function renderPage(
     c: Context,
@@ -111,7 +107,7 @@ export function createServer(config: AppConfig) {
     const envFiles = await backend.listFiles();
     return renderPage(
       c,
-      () => c.html(<HomePage flash={c.get("flash")} envFiles={envFiles} />),
+      () => c.html(<HomePage flash={getFlash(c)} envFiles={envFiles} />),
     );
   });
 
@@ -173,7 +169,7 @@ export function createServer(config: AppConfig) {
         c.html(
           <EnvFileDetailsPage
             envFile={{ name: file.name, variables }}
-            flash={c.get("flash")}
+            flash={getFlash(c)}
           />,
         ),
     );
