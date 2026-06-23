@@ -5,7 +5,6 @@ import { type Context, Hono } from "hono";
 import { deleteCookie, getCookie } from "hono/cookie";
 import { serveStatic } from "hono/deno";
 import { routePath } from "hono/route";
-import console from "node:console";
 import { VariableValueDisplay } from "../components/EnvVariableItem/VariableValueDisplay.tsx";
 import { VariableValueEdit } from "../components/EnvVariableItem/VariableValueEdit.tsx";
 import { EnvFileDetailsPage } from "../views/EnvFileDetailsPage.tsx";

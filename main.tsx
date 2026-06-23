@@ -1,4 +1,3 @@
-import console from "node:console";
 import denoJson from "./deno.json" with { type: "json" };
 import { configFromArgs } from "./logic/config/configFromArgs.ts";
 import { configFromEnv } from "./logic/config/configFromEnv.ts";
